@@ -1,0 +1,27 @@
+# Purpose of PARTITION: USB-INSTALL
+# ============================================
+#
+# It is formatted as FAT32 to ensure UEFI boot compatibility.  It contains:
+#     - All the files necessary to be able to Boot from the USB into WinPE.
+#	So, that:
+#	    - the Compatibility Checker can be run and 
+#	    - Windows 11 installed on a machine without an Operating System.
+#	    - ALL the Powershell Scripts necessary to run the system, under WinPE or Windows.
+#	    - All the RTF (Rich Text Files) that:
+#	         - Define the Menus used by the System, and
+#		 - The Groups, Options and Advice used by the DeBloater's User Interface.
+#
+# It contains four Batch Files:
+#    - 'RUN - On2it-WinFixIT.bat'    This runs .\Scripts\WinFixIT.ps1,
+#                                    which starts the main system.
+#    - 'RUN - Win11-DeBloater.bat'   This is a temporary file that just runs  
+#				     .\Scripts\DeBloater.ps1
+#                                    on its own for testing purposes.
+#    - 'RUN - OTHER Options.bat'     This is a temporary file that just runs 
+#                                    .\Scripts\WinFixIT\Extensible Dynamic Menus.ps1
+#                                    on its own for testing purposes.
+#    - DRAW-DirectoryTree.bat	     This runs 
+#				     .\Scripts\Utilities\Draw-DirectoryTree.ps1
+#                                    which draws a directory tree for documentation purpose	
+
+
