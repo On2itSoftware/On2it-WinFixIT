@@ -18,14 +18,23 @@ A self-contained Windows Compatibility Checker, Installer, DeBloater, and Adviso
 
 ## Quick start
 
-1. Download or clone this repository.
-2. Insert a **32GB or larger** USB drive.
-3. Run `Build-Your-USB.ps1` (right-click → Run with PowerShell, or run from an elevated PowerShell prompt).  It will ask for admin rights automatically.
-   - **Windows may block it initially** — since it's a script downloaded from the internet, you may see a blue "Windows protected your PC" SmartScreen screen, or an "execution policy" error.  This is normal, not a sign anything's wrong:
-     - SmartScreen screen → click **More info**, then **Run anyway**.
-     - Execution policy error → right-click the `.ps1` file → **Properties** → tick **Unblock** → OK, then run it again.
-4. Follow the prompts — pick your USB drive, confirm, and let it download and copy the content.  This takes a while (~11.5GB download) — but once downloaded, you can build additional USBs from the same PC without re-downloading.
-5. When it's done, run `RUN - On2it-WinFixIT.bat` from the USB-INSTALL or On2it-WinFixIT partition to start — both work.
+No technical experience needed — every step below is exactly what to click.
+
+1. Near the top of this page, click the green **`<> Code`** button, then click **Download ZIP**.
+2. It will download to your **Downloads** folder as a `.zip` file.  Open **File Explorer** → **Downloads**, right-click that file, and choose **Extract All...** → **Extract**.  This creates a new folder with all the files in it.
+3. Open that new folder and find **`Build-Your-USB.ps1`**.
+4. Insert a **32GB or larger** USB drive that you're OK with completely erasing.
+5. Right-click `Build-Your-USB.ps1`.
+   - If you see **Run with PowerShell** in the menu, click it.
+   - If you don't: on Windows 11, the right-click menu is often shortened.  Click **"Show more options"** near the bottom of that menu first — the full menu will appear, and **Run with PowerShell** will be in it.
+   - Still not there? Open the **Start menu**, type `PowerShell`, and open it.  In the window that appears, type `cd "` (with the quote mark), then drag the extracted folder from File Explorer into the PowerShell window — it will fill in the folder path automatically.  Type a closing `"` and press **Enter**.  Then type `.\Build-Your-USB.ps1` and press **Enter**.
+6. A User Account Control ("do you want to allow this app...") prompt will appear — click **Yes**.  This is expected; the script needs admin rights to partition the USB drive.
+7. **Windows may also block the script the first time**, showing a blue "Windows protected your PC" screen, or an "execution policy" error in the PowerShell window.  This is normal for any script downloaded from the internet, not a sign anything's wrong:
+   - Blue SmartScreen screen → click **More info**, then **Run anyway**.
+   - "Execution policy" error in the PowerShell window → close it, right-click `Build-Your-USB.ps1` → **Properties** → tick **Unblock** near the bottom → **OK**, then repeat step 5.
+8. A black PowerShell window will open and ask you questions — which USB drive to use, and a final "Type YES to continue" confirmation before it erases the drive.  Read each prompt and answer it.
+9. Then it downloads and copies everything — this takes a while (~11.5GB total), especially on a slower internet connection.  Once downloaded, you can reuse that download to build additional USBs from the same PC without waiting again.
+10. When it says the build is complete, unplug and reinsert the USB drive (or just open it fresh in File Explorer), and double-click **`RUN - On2it-WinFixIT.bat`** to start.  This file exists on both partitions of the USB — either one works.
 
 ## Requirements
 
