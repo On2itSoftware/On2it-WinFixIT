@@ -22,19 +22,15 @@ No technical experience needed — every step below is exactly what to click.
 
 1. Near the top of this page, click the green **`<> Code`** button, then click **Download ZIP**.
 2. It will download to your **Downloads** folder as a `.zip` file.  Open **File Explorer** → **Downloads**, right-click that file, and choose **Extract All...** → **Extract**.  This creates a new folder with all the files in it.
-3. Open that new folder and find **`Build-Your-USB.ps1`**.
+3. Open that new folder and find **`RUN - Build-Your-USB.bat`**.
 4. Insert a **32GB or larger** USB drive that you're OK with completely erasing.
-5. Right-click `Build-Your-USB.ps1`.
-   - If you see **Run with PowerShell** in the menu, click it.
-   - If you don't: on Windows 11, the right-click menu is often shortened.  Click **"Show more options"** near the bottom of that menu first — the full menu will appear, and **Run with PowerShell** will be in it.
-   - Still not there? Open the **Start menu**, type `PowerShell`, and open it.  In the window that appears, type `cd "` (with the quote mark), then drag the extracted folder from File Explorer into the PowerShell window — it will fill in the folder path automatically.  Type a closing `"` and press **Enter**.  Then type `.\Build-Your-USB.ps1` and press **Enter**.
-6. A User Account Control ("do you want to allow this app...") prompt will appear — click **Yes**.  This is expected; the script needs admin rights to partition the USB drive.
-7. **Windows may also block the script the first time**, showing a blue "Windows protected your PC" screen, or an "execution policy" error in the PowerShell window.  This is normal for any script downloaded from the internet, not a sign anything's wrong:
-   - Blue SmartScreen screen → click **More info**, then **Run anyway**.
-   - "Execution policy" error in the PowerShell window → close it, right-click `Build-Your-USB.ps1` → **Properties** → tick **Unblock** near the bottom → **OK**, then repeat step 5.
-8. A black PowerShell window will open and ask you questions — which USB drive to use, and a final "Type YES to continue" confirmation before it erases the drive.  Read each prompt and answer it.
-9. Then it downloads and copies everything — this takes a while (~11.5GB total), especially on a slower internet connection.  Once downloaded, you can reuse that download to build additional USBs from the same PC without waiting again.
-10. When it says the build is complete, unplug and reinsert the USB drive (or just open it fresh in File Explorer), and double-click **`RUN - On2it-WinFixIT.bat`** to start.  This file exists on both partitions of the USB — either one works.
+5. Double-click **`RUN - Build-Your-USB.bat`**.
+   - You may see an "Open File - Security Warning" box first, since this was downloaded from the internet.  Click **Run** (or **Open**) to continue — this is normal for any downloaded program, not a sign anything's wrong.
+   - You may also see a blue **"Windows protected your PC"** SmartScreen screen.  If so, click **More info**, then **Run anyway**.
+6. A User Account Control box ("do you want to allow this app...") will appear — click **Yes**.  This is expected; the script needs admin rights to partition the USB drive.
+7. A black window will open and ask you questions — which USB drive to use, and a final "Type YES to continue" confirmation before it erases the drive.  Read each prompt and answer it.
+8. Then it downloads and copies everything — this takes a while (~11.5GB total), especially on a slower internet connection.  Once downloaded, you can reuse that download to build additional USBs from the same PC without waiting again.
+9. When it says the build is complete, unplug and reinsert the USB drive (or just open it fresh in File Explorer), and double-click **`RUN - On2it-WinFixIT.bat`** to start.  This file exists on both partitions of the USB — either one works.
 
 ## Requirements
 
