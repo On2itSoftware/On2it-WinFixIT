@@ -16,6 +16,10 @@ A self-contained Windows Compatibility Checker, Installer, DeBloater, and Adviso
 
 **[Read the User Manual](USB-INSTALL/WinFixIT%20-%20User%20Manual.pdf)** — click to preview it right here on GitHub, no download required.
 
+## 📥 Illustrated Download and Quickstart Guide
+
+**[Read the Illustrated Download and Quickstart Guide](Docs/WinFixIT%20-%20Downloading%20from%20GitHub.pdf)** — click to preview it right here on GitHub, no download required.  Screenshots for every step below, plus what to expect once the build itself gets going.
+
 ## Quick start
 
 No technical experience needed — every step below is exactly what to click.
@@ -30,7 +34,9 @@ No technical experience needed — every step below is exactly what to click.
 6. A User Account Control box ("do you want to allow this app...") will appear — click **Yes**.  This is expected; the script needs admin rights to partition the USB drive.
 7. A black window will open and ask you questions — which USB drive to use, and a final "Type YES to continue" confirmation before it erases the drive.  Read each prompt and answer it.
 8. Then it downloads and copies everything — this takes a while (~11.5GB total), especially on a slower internet connection.  Once downloaded, you can reuse that download to build additional USBs from the same PC without waiting again.
-9. When it says the build is complete, unplug and reinsert the USB drive (or just open it fresh in File Explorer), and double-click **`RUN - On2it-WinFixIT.bat`** to start.  This file exists on both partitions of the USB — either one works.
+9. When it says the build is complete, unplug and reinsert the USB drive (or just open it fresh in File Explorer).
+   - **On a PC with Windows already installed**: double-click **`RUN - On2it-WinFixIT.bat`** to start.  This file exists on both partitions of the USB — either one works.
+   - **On a PC with no OS installed at all**: set your BIOS to boot from the USB drive, and follow the on-screen prompts.
 
 ## Requirements
 
@@ -47,7 +53,7 @@ No technical experience needed — every step below is exactly what to click.
 
 ## Notes
 
-- This build script is the public counterpart to our internal shop build tooling — same partitioning and copy logic, just pointed at a public download instead of our internal file server.
+- This build script is the public counterpart to our internal in-house build tooling — same partitioning and copy logic, just pointed at a public download instead of our internal file server.
 
 ## License
 
