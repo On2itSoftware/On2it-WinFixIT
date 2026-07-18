@@ -29,7 +29,17 @@
 #>
 
 function Invoke-RobocopyDotsOnly {
-    param([string[]]$RobocopyArgs)
+    param(
+        [string[]]$RobocopyArgs,
+        # This function has no progress signal of its own (unlike
+        # Invoke-RobocopyDotsWithETA below) to detect a genuine stall, so this
+        # is a generous wall-clock backstop rather than true stall detection.
+        # Confirmed 2026-07-18: a copy can hang indefinitely with no error at
+        # all if e.g. the destination USB drive stops responding mid-write -
+        # nothing before this caught that. 60 min comfortably covers even a
+        # multi-GB single file (the large-file pass) on a slow USB drive.
+        [int]$MaxMinutes = 60
+    )
     $outFile = [System.IO.Path]::GetTempFileName()
     $errFile = [System.IO.Path]::GetTempFileName()
     $argString = ($RobocopyArgs | ForEach-Object {
@@ -37,9 +47,18 @@ function Invoke-RobocopyDotsOnly {
     }) -join ' '
     $proc = Start-Process -FilePath 'robocopy.exe' -ArgumentList $argString -NoNewWindow -PassThru `
         -RedirectStandardOutput $outFile -RedirectStandardError $errFile
+
+    $startTime = Get-Date
     while (-not $proc.HasExited) {
         Write-Host -NoNewline '.'
         Start-Sleep -Seconds 1
+
+        if (((Get-Date) - $startTime).TotalMinutes -ge $MaxMinutes) {
+            try { Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue } catch { }
+            Write-Host ""
+            Remove-Item $outFile, $errFile -Force -ErrorAction SilentlyContinue
+            throw "Copy stalled -- still running after $MaxMinutes minutes with no sign of finishing. Check the USB drive is still connected (or that the PC didn't go to sleep) and re-run this script."
+        }
     }
     Write-Host ''
     Remove-Item $outFile, $errFile -Force -ErrorAction SilentlyContinue
@@ -85,6 +104,12 @@ function Invoke-RobocopyDotsWithETA {
     $startTime      = Get-Date
     $lastStatusTime = $startTime
     $lastStatusRow  = $null   # tracks where to land the cursor cleanly once the loop ends
+    $lastProgressMB = 0
+    $stalledChecks  = 0
+    $MAX_STALLED_CHECKS = 5   # ~5 minutes of zero progress (checked once per 60s tick) -- same
+                              # threshold and shape as the download's stall detector. Confirmed
+                              # 2026-07-18: Pam's PC had its display sleep mid-copy and the copy
+                              # itself hung with no error, just dots that stopped meaning anything.
 
     while (-not $proc.HasExited) {
         Write-Host -NoNewline '.'
@@ -95,6 +120,20 @@ function Invoke-RobocopyDotsWithETA {
             $currentFree = (Get-Volume -DriveLetter $DestDriveLetter -ErrorAction SilentlyContinue).SizeRemaining
             if ($null -ne $currentFree) {
                 $writtenMB = [math]::Max(0, [math]::Round(($startFreeBytes - $currentFree) / 1MB, 0))
+
+                if ($writtenMB -le $lastProgressMB) {
+                    $stalledChecks++
+                    if ($stalledChecks -ge $MAX_STALLED_CHECKS) {
+                        try { Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue } catch { }
+                        Write-Host ""
+                        Remove-Item $outFile, $errFile -Force -ErrorAction SilentlyContinue
+                        throw "Copy stalled -- no progress for $MAX_STALLED_CHECKS minutes. Check the USB drive is still connected (or that the PC didn't go to sleep) and re-run this script."
+                    }
+                } else {
+                    $stalledChecks = 0
+                }
+                $lastProgressMB = $writtenMB
+
                 $elapsedMin = ((Get-Date) - $startTime).TotalMinutes
                 $rateMBmin  = if ($elapsedMin -gt 0) { $writtenMB / $elapsedMin } else { 0 }
                 # NTFS cluster rounding means actual disk space consumed (what

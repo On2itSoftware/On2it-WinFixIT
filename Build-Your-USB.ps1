@@ -103,15 +103,20 @@ $ProgressPreference = 'SilentlyContinue'
 # sleep - but only for as long as the player keeps requesting it. This does the
 # same for the whole build (download + partition + copy), released in the
 # `finally` block at the very end regardless of success or failure.
-$ES_CONTINUOUS      = [uint32]0x80000000L   # the L forces this to parse as Int64 first --
-$ES_SYSTEM_REQUIRED = [uint32]0x00000001L   # 0x80000000 alone overflows Int32 and fails the cast
+# ES_DISPLAY_REQUIRED added 2026-07-18 -- ES_SYSTEM_REQUIRED alone keeps the
+# SYSTEM awake but does NOT stop the DISPLAY from blanking on its own timeout
+# (confirmed live during Pam's test: no failure warning shown, so the API call
+# had succeeded, but the screen still went blank on an ASUS All-in-One desktop).
+$ES_CONTINUOUS       = [uint32]0x80000000L   # the L forces this to parse as Int64 first --
+$ES_SYSTEM_REQUIRED  = [uint32]0x00000001L   # 0x80000000 alone overflows Int32 and fails the cast
+$ES_DISPLAY_REQUIRED = [uint32]0x00000002L
 $sleepPreventionActive = $false
 try {
     Add-Type -Name Kernel32 -Namespace Win32SleepPrevention -MemberDefinition @'
 [DllImport("kernel32.dll", SetLastError = true)]
 public static extern uint SetThreadExecutionState(uint esFlags);
 '@ -ErrorAction Stop
-    [Win32SleepPrevention.Kernel32]::SetThreadExecutionState($ES_CONTINUOUS -bor $ES_SYSTEM_REQUIRED) | Out-Null
+    [Win32SleepPrevention.Kernel32]::SetThreadExecutionState($ES_CONTINUOUS -bor $ES_SYSTEM_REQUIRED -bor $ES_DISPLAY_REQUIRED) | Out-Null
     $sleepPreventionActive = $true
 } catch {
     Write-Host "  NOTE: Could not disable sleep for this build -- if the PC sleeps mid-run," -ForegroundColor Yellow
@@ -307,7 +312,7 @@ Write-Host ""
 if (-not (Test-Path $postZip)) {
     $postExpectedMB = 11000
     Write-Host "  Downloading On2it-WinFixIT.zip ($(Format-SizeMB $postExpectedMB), this will take a while)..." -ForegroundColor Cyan
-    Write-Host "  (On2it-WinFixIT Partition content - install and LIBRARY Menu files)" -ForegroundColor DarkGray
+    Write-Host "  (On2it-WinFixIT Partition content - Over  9 GB of Windows ISOs + our LIBRARY Menu files)" -ForegroundColor DarkGray
     Write-Host "  Feel free to leave it running in the background.  An estimated time remaining will appear shortly." -ForegroundColor DarkGray
     Invoke-DownloadWithDots -Uri $PostInstallZipUrl -OutFile $postZip -ExpectedTotalMB $postExpectedMB
     Write-Host "  Download complete." -ForegroundColor Cyan
@@ -508,7 +513,11 @@ if ($fitProblems.Count -gt 0) {
 Write-Host "  All content fits within the planned partitions." -ForegroundColor Green
 Write-Host ""
 
-Write-Host "  WARNING: ALL DATA ON DISK $tgtDiskNum WILL BE PERMANENTLY DESTROYED." -ForegroundColor Red
+# ANSI bold ($([char]27)[1m ... [0m) -- Write-Host has no native bold switch.
+# Assumes a VT100-capable console, which Windows 10/11's default conhost and
+# Windows Terminal both are; worst case on an unusual host this just shows as
+# plain (non-bold) red-on-white rather than breaking anything.
+Write-Host "$([char]27)[1m  WARNING: ALL DATA ON DISK $tgtDiskNum WILL BE PERMANENTLY DESTROYED.  $([char]27)[0m" -ForegroundColor Red -BackgroundColor White
 Write-Host ""
 Write-Host "  Type YES to continue: " -NoNewline -ForegroundColor Yellow
 $confirm = Read-Host
@@ -633,12 +642,14 @@ Write-Host "  but it's there if you do." -ForegroundColor Gray
 Write-Host ""
 Write-Host "  Press Enter to close: " -NoNewline -ForegroundColor Yellow
 Read-Host
+exit
 } catch {
     Write-Host ""
     Write-Host "  $($_.Exception.Message)" -ForegroundColor Red
     Write-Host ""
     Write-Host "  Press Enter to close: " -NoNewline -ForegroundColor Yellow
     Read-Host
+    exit
 } finally {
     if ($sleepPreventionActive) {
         [Win32SleepPrevention.Kernel32]::SetThreadExecutionState($ES_CONTINUOUS) | Out-Null
