@@ -295,6 +295,69 @@ function Invoke-DownloadWithDots {
     Remove-Job $job -Force
 }
 
+# If a previously downloaded file exists (e.g. left over from an abandoned run),
+# ask whether to reuse it or start fresh, rather than either silently trusting
+# it or silently redownloading a possibly-fine multi-GB file. A completion-flag
+# file (written only once Test-DownloadHash has actually confirmed the file is
+# good) lets this tell the user whether the leftover file is known-good or
+# might be a partial/corrupted remnant, so "if in doubt, re-download" can be
+# the sensible default without being the only option.
+function Confirm-ExistingDownload {
+    param(
+        [string]$Path,
+        [string]$Label
+    )
+    if (-not (Test-Path $Path)) { return }
+
+    $flagPath = "$Path.complete"
+    if (Test-Path $flagPath) {
+        $completedAt = Get-Content -LiteralPath $flagPath -Raw -ErrorAction SilentlyContinue
+        Write-Host "  Found a previously downloaded $Label, completed $completedAt." -ForegroundColor White
+    } else {
+        Write-Host "  Found a $Label left over from an earlier run that may not have finished downloading." -ForegroundColor White
+    }
+    Write-Host "  Re-download it, or use what's already there? [R]e-download (default) / [U]se existing: " -NoNewline -ForegroundColor Yellow
+    $answer = Read-Host
+    if ($answer -notmatch '^[Uu]') {
+        Remove-Item -LiteralPath $Path -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $flagPath -Force -ErrorAction SilentlyContinue
+    }
+}
+
+function Set-DownloadCompleteFlag {
+    param([string]$Path)
+    Get-Date -Format 'yyyy-MM-dd HH:mm:ss' | Set-Content -LiteralPath "$Path.complete"
+}
+
+# Extracts a zip, but first checks a completion-flag file inside the destination
+# folder to detect a partial extraction left over from an aborted run (window
+# closed mid-extraction, PC crashed, etc.) -- Test-Path on the folder alone
+# can't tell "fully extracted" apart from "half extracted", which would
+# otherwise silently skip re-extracting and build a USB with incomplete
+# content, no error at all. Re-extracting is cheap (unlike re-downloading), so
+# this just fixes it automatically rather than asking.
+function Expand-VerifiedArchive {
+    param(
+        [string]$ZipPath,
+        [string]$DestPath,
+        [string]$Label
+    )
+    $flagPath = Join-Path $DestPath '_extraction_complete.txt'
+    if ((Test-Path $DestPath) -and -not (Test-Path $flagPath)) {
+        Remove-Item -LiteralPath $DestPath -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    if (-not (Test-Path $DestPath)) {
+        Write-Host "  Extracting $Label..." -ForegroundColor Cyan
+        try {
+            Expand-Archive -Path $ZipPath -DestinationPath $DestPath -Force
+            Get-Date -Format 'yyyy-MM-dd HH:mm:ss' | Set-Content -LiteralPath $flagPath
+        } catch {
+            if (Test-Path $DestPath) { Remove-Item $DestPath -Recurse -Force }
+            throw
+        }
+    }
+}
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 2. Download On2it-WinFixIT content and Scripts bundle
 # ─────────────────────────────────────────────────────────────────────────────
@@ -309,6 +372,7 @@ $bootExtract    = Join-Path $tempRoot 'Boot-Files'
 New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
 
 Write-Host ""
+Confirm-ExistingDownload -Path $postZip -Label 'On2it-WinFixIT.zip'
 if (-not (Test-Path $postZip)) {
     $postExpectedMB = 11000
     Write-Host "  Downloading On2it-WinFixIT.zip ($(Format-SizeMB $postExpectedMB), this will take a while)..." -ForegroundColor Cyan
@@ -316,62 +380,36 @@ if (-not (Test-Path $postZip)) {
     Write-Host "  Feel free to leave it running in the background.  An estimated time remaining will appear shortly." -ForegroundColor DarkGray
     Invoke-DownloadWithDots -Uri $PostInstallZipUrl -OutFile $postZip -ExpectedTotalMB $postExpectedMB
     Write-Host "  Download complete." -ForegroundColor Cyan
-} else {
-    Write-Host "  Using previously downloaded On2it-WinFixIT.zip ($tempRoot)." -ForegroundColor DarkGray
-    Write-Host "  Delete that folder to force a fresh download." -ForegroundColor DarkGray
 }
 Test-DownloadHash -Path $postZip -ExpectedHash $PostInstallZipHash -Label 'On2it-WinFixIT.zip'
-if (-not (Test-Path $postExtract)) {
-    Write-Host "  Extracting On2it-WinFixIT content..." -ForegroundColor Cyan
-    try {
-        Expand-Archive -Path $postZip -DestinationPath $postExtract -Force
-    } catch {
-        if (Test-Path $postExtract) { Remove-Item $postExtract -Recurse -Force }
-        throw
-    }
-}
+Set-DownloadCompleteFlag -Path $postZip
+Expand-VerifiedArchive -ZipPath $postZip -DestPath $postExtract -Label 'On2it-WinFixIT content'
 
 Write-Host ""
+Confirm-ExistingDownload -Path $scriptsZip -Label 'USB-INSTALL-Scripts.zip'
 if (-not (Test-Path $scriptsZip)) {
     $scriptsExpectedMB = 7
     Write-Host "  Downloading USB-INSTALL-Scripts.zip ($(Format-SizeMB $scriptsExpectedMB))..." -ForegroundColor Cyan
     Write-Host "  (This is the logic that drives the system.)" -ForegroundColor DarkGray
     Invoke-DownloadWithDots -Uri $ScriptsZipUrl -OutFile $scriptsZip -ExpectedTotalMB $scriptsExpectedMB
     Write-Host "  Download complete." -ForegroundColor Cyan
-} else {
-    Write-Host "  Using previously downloaded USB-INSTALL-Scripts.zip ($tempRoot)." -ForegroundColor DarkGray
 }
 Test-DownloadHash -Path $scriptsZip -ExpectedHash $ScriptsZipHash -Label 'USB-INSTALL-Scripts.zip'
-if (-not (Test-Path $scriptsExtract)) {
-    Write-Host "  Extracting files from USB-INSTALL-Scripts.zip..." -ForegroundColor Cyan
-    try {
-        Expand-Archive -Path $scriptsZip -DestinationPath $scriptsExtract -Force
-    } catch {
-        if (Test-Path $scriptsExtract) { Remove-Item $scriptsExtract -Recurse -Force }
-        throw
-    }
-}
+Set-DownloadCompleteFlag -Path $scriptsZip
+Expand-VerifiedArchive -ZipPath $scriptsZip -DestPath $scriptsExtract -Label 'files from USB-INSTALL-Scripts.zip'
 
 Write-Host ""
+Confirm-ExistingDownload -Path $bootZip -Label 'USB-INSTALL-Boot.zip'
 if (-not (Test-Path $bootZip)) {
     $bootExpectedMB = 501
     Write-Host "  Downloading USB-INSTALL-Boot.zip ($(Format-SizeMB $bootExpectedMB))..." -ForegroundColor Cyan
     Write-Host "  (Microsoft WinPE, which enables WinFixIT to run without a full OS.)" -ForegroundColor DarkGray
     Invoke-DownloadWithDots -Uri $BootZipUrl -OutFile $bootZip -ExpectedTotalMB $bootExpectedMB
     Write-Host "  Download complete." -ForegroundColor Cyan
-} else {
-    Write-Host "  Using previously downloaded USB-INSTALL-Boot.zip ($tempRoot)." -ForegroundColor DarkGray
 }
 Test-DownloadHash -Path $bootZip -ExpectedHash $BootZipHash -Label 'USB-INSTALL-Boot.zip'
-if (-not (Test-Path $bootExtract)) {
-    Write-Host "  Extracting files from USB-INSTALL-Boot.zip..." -ForegroundColor Cyan
-    try {
-        Expand-Archive -Path $bootZip -DestinationPath $bootExtract -Force
-    } catch {
-        if (Test-Path $bootExtract) { Remove-Item $bootExtract -Recurse -Force }
-        throw
-    }
-}
+Set-DownloadCompleteFlag -Path $bootZip
+Expand-VerifiedArchive -ZipPath $bootZip -DestPath $bootExtract -Label 'files from USB-INSTALL-Boot.zip'
 
 $SRC_POST = $postExtract
 
@@ -631,13 +669,21 @@ Write-Host "    Starting WinFixIT:" -ForegroundColor White
 Write-Host "  ==================================================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  On a PC with ANY version of Windows:" -ForegroundColor White
-Write-Host "        Double-click 'RUN - On2it-WinFixIT.bat', " -ForegroundColor Gray
-Write-Host "        in either the USB-INSTALL or On2it-WinFixIT partitions to start." -ForegroundColor Gray
+Write-Host "        1. Open File Explorer " -ForegroundColor Gray
+Write-Host "           (press the Windows key + E, or click the folder icon on your taskbar)."  -ForegroundColor Gray
+Write-Host "        2. In the left-hand panel (under 'This PC'), look for drive" -ForegroundColor Gray
+Write-Host "               USB-INSTALL ($tgtL1`:) or" -ForegroundColor Gray
+Write-Host "               On2it-WinFixIT ($tgtL2`:)." -ForegroundColor Gray
+Write-Host "        3. Double-click either one to open it, then double-click" -ForegroundColor Gray
+Write-Host "               RUN - On2it-WinFixIT.bat " -ForegroundColor Gray
+Write-Host "           inside it to start." -ForegroundColor Gray
+Write-Host ""
 Write-Host "  On a PC with NO OS installed:" -ForegroundColor White
 Write-Host "        Set your BIOS to boot from your USB and follow your nose." -ForegroundColor Gray
+Write-Host "        For FULL details see the User Manual." -ForegroundColor Gray
 Write-Host ""
 Write-Host "  A full user manual is included in the USB-INSTALL partition as 'WinFixIT - User Manual.pdf'." -ForegroundColor Gray
-Write-Host "  Hopefully you won't need it, as we've designed WinFixIT to explain itself as you go through it, "  -ForegroundColor Gray
+Write-Host "  Hopefully you won't need it, as we've designed WinFixIT to explain itself as you go along, "  -ForegroundColor Gray
 Write-Host "  but it's there if you do." -ForegroundColor Gray
 Write-Host ""
 Write-Host "  Press Enter to close: " -NoNewline -ForegroundColor Yellow
