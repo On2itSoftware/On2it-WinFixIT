@@ -14,11 +14,11 @@ A self-contained Windows Compatibility Checker, Installer, DeBloater, and Adviso
 
 ## 📘 User Manual
 
-**[Read the User Manual](USB-INSTALL/WinFixIT%20-%20User%20Manual.pdf)** — click to preview it right here on GitHub, no download required.
+**[Read the User Manual](https://raw.githubusercontent.com/On2itSoftware/On2it-WinFixIT/master/USB-INSTALL/WinFixIT%20-%20User%20Manual.pdf)** — opens on its own in your browser's PDF viewer, full width, no download required.
 
 ## 📥 Illustrated Download and Quickstart Guide
 
-**[Read the Illustrated Download and Quickstart Guide](Docs/WinFixIT%20-%20Downloading%20from%20GitHub.pdf)** — click to preview it right here on GitHub, no download required.  Screenshots for every step below, plus what to expect once the build itself gets going.
+**[Read the Illustrated Download and Quickstart Guide](https://raw.githubusercontent.com/On2itSoftware/On2it-WinFixIT/master/Docs/WinFixIT%20-%20Downloading%20from%20GitHub.pdf)** — opens on its own in your browser's PDF viewer, full width, no download required.  Screenshots for every step below, plus what to expect once the build itself gets going.
 
 ## Quick start
 
