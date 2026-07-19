@@ -21,9 +21,6 @@
                                                         EFI\, Boot\, sources\boot.wim)
                     Scripts bundle                 → P1\Scripts (hidden after copy)
 
-        Calls:  Tools\sgdisk64.exe for GPT partition naming (optional --
-                skipped with a warning if not present)
-
    Designed by: Brian McGuigan
             of: On2it Software Ltd
        Code by: Claude
@@ -70,7 +67,6 @@ $BootZipHash         = '7FE946C849DABE3F7D7CBEECAF50E3D01053FFB4DE604765C9E35A03
 
 $ScriptRoot   = $PSScriptRoot
 $SRC_INSTALL  = Join-Path $ScriptRoot 'USB-INSTALL'
-$SGDISK       = Join-Path $ScriptRoot 'Tools\sgdisk64.exe'
 
 $P1_SIZE_MB      = 1024   # USB-INSTALL - FAT32 - 1 GB
 $P3_SIZE_MB      = 1024   # Reserved (Courses)  - NTFS - 1 GB, structure only, never populated publicly
@@ -587,8 +583,7 @@ $tgtL3 = if ($coursesHasContent) { $freeLetters[2] } else { $null }   # P3 - Res
 Invoke-USBPartitioning -DiskNum $tgtDiskNum -CoursesHasContent $coursesHasContent `
     -L1 $tgtL1 -L2 $tgtL2 -L3 $tgtL3 `
     -P1SizeMB $P1_SIZE_MB -P2SizeMB $P2_SIZE_MB -P3SizeMB $p3ReservedMB `
-    -L2Label 'On2it-WinFixIT' -L3Label 'Reserved' `
-    -SgdiskPath $SGDISK
+    -L2Label 'On2it-WinFixIT' -L3Label 'Reserved'
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 7. Copy content
