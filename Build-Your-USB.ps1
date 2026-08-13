@@ -62,7 +62,7 @@ $BootZipUrl          = 'https://pub-ef7ad4a1315f418ea10408fd91c554c7.r2.dev/USB-
 # SHA256 checksums of the zips above, verified after every download (fresh or
 # cached) to catch a truncated/corrupted download before it silently breaks the build.
 $PostInstallZipHash = '9CF9870628803A4F1F5BDFB39F1D1A968EC4D1D9CFB2086B8B62365CFF766A52'
-$ScriptsZipHash      = 'BB6D151B692CA51053F44C66D8E22FD24B3A547BD2487166DAF184393393BB81'
+$ScriptsZipHash      = '5D64F5BB4E73532C7B2DB84459CAA0EA529DC06C1099D69B41F9C8FA7A4967BA'
 $BootZipHash         = '7FE946C849DABE3F7D7CBEECAF50E3D01053FFB4DE604765C9E35A03614A141F'
 
 $ScriptRoot   = $PSScriptRoot
@@ -159,6 +159,10 @@ function Test-DownloadHash {
         Remove-Item -LiteralPath $Path -Force -ErrorAction SilentlyContinue
         throw "$Label failed its integrity check (checksum mismatch) -- the download is likely corrupted or incomplete. The bad file has been deleted; just re-run this script to try again."
     }
+    # Previously silent on success, so a passing check gave no visible sign
+    # before the next (unrelated) file's prompt appeared - looked like the
+    # run had skipped or jumped ahead. Brian, 2026-08-13.
+    Write-Host "  Hash verified OK." -ForegroundColor Cyan
 }
 
 # Shows GB for anything gigabyte-sized, MB otherwise -- "0.0 GB" for the tiny
@@ -305,12 +309,18 @@ function Confirm-ExistingDownload {
     )
     if (-not (Test-Path $Path)) { return }
 
+    # Path shown explicitly - Brian, 2026-08-13: "I thought I had deleted
+    # them" - without the path, there's no way to know WHERE to go delete a
+    # leftover file from (it's $env:SystemDrive\On2it-WinFixIT-USB-Build,
+    # not Downloads or anywhere else a person might expect).
     $flagPath = "$Path.complete"
     if (Test-Path $flagPath) {
         $completedAt = Get-Content -LiteralPath $flagPath -Raw -ErrorAction SilentlyContinue
         Write-Host "  Found a previously downloaded $Label, completed $completedAt." -ForegroundColor White
+        Write-Host "    $Path" -ForegroundColor DarkGray
     } else {
         Write-Host "  Found a $Label left over from an earlier run that may not have finished downloading." -ForegroundColor White
+        Write-Host "    $Path" -ForegroundColor DarkGray
     }
     Write-Host "  Re-download it, or use what's already there? [R]e-download (default) / [U]se existing: " -NoNewline -ForegroundColor Yellow
     $answer = Read-Host
@@ -357,7 +367,7 @@ function Expand-VerifiedArchive {
 # ─────────────────────────────────────────────────────────────────────────────
 # 2. Download On2it-WinFixIT content and Scripts bundle
 # ─────────────────────────────────────────────────────────────────────────────
-$tempRoot       = Join-Path $env:SystemDrive 'OWFIT-Build'
+$tempRoot       = Join-Path $env:SystemDrive 'On2it-WinFixIT-USB-Build'
 $postZip        = Join-Path $tempRoot 'On2it-WinFixIT.zip'
 $postExtract    = Join-Path $tempRoot 'On2it-WinFixIT'
 $scriptsZip     = Join-Path $tempRoot 'USB-INSTALL-Scripts.zip'
@@ -366,6 +376,18 @@ $bootZip        = Join-Path $tempRoot 'USB-INSTALL-Boot.zip'
 $bootExtract    = Join-Path $tempRoot 'Boot-Files'
 
 New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
+
+# Brian, 2026-08-13, after watching a real run: "I didn't appreciate it was
+# downloading two [really three] separate ZIP files. We need to make that
+# more obvious somehow." Without this, the run jumps straight from one
+# file's completed download into a completely different file's "Found a
+# previously downloaded..." prompt, with nothing signalling that's a new,
+# separate item rather than a repeat of the same one.
+Write-Host ""
+Write-Host "  First we need to download:" -ForegroundColor White
+Write-Host "     - On2it-WinFixIT.zip," -ForegroundColor White
+Write-Host "     - USB-INSTALL-Scripts.zip," -ForegroundColor White
+Write-Host "     - USB-INSTALL-Boot.zip." -ForegroundColor White
 
 Write-Host ""
 Confirm-ExistingDownload -Path $postZip -Label 'On2it-WinFixIT.zip'

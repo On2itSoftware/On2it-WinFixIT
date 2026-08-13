@@ -1,0 +1,32 @@
+Purpose of On2it-WinFixIT-for-GitHub Folder
+=============================================
+This is NOT one of the three USB partitions and nothing here is cloned
+directly onto a Master USB. It's the staging tree for the PUBLIC GitHub
+distribution channel - a separate way of getting WinFixIT, alongside
+building a physical USB directly from PRODUCTION.
+
+A student clones/downloads this repo, then runs
+Build-Your-USB.ps1 (via RUN - Build-Your-USB.bat) themselves to build
+their own USB. Because On2it-WinFixIT is too large for GitHub to host,
+Build-Your-USB.ps1 downloads that bulk content from Cloudflare R2 at
+build time instead of it being included here.
+
+    USB-INSTALL\
+    -------------
+    A curated, GitHub-safe SUBSET of the real USB-INSTALL partition -
+    only an explicit allowlist of files, copied by
+    UTILITIES\COPY - Shared Scripts to Public Repo.bat. Never assume this
+    is a complete mirror of the real USB-INSTALL.
+
+    Build-Your-USB.ps1 / RUN - Build-Your-USB.bat
+    ------------------------------------------------
+    What the student actually runs to build their own USB - partitions
+    it, copies USB-INSTALL from here, downloads On2it-WinFixIT content
+    from Cloudflare R2.
+
+    Docs\, Tools\, README.md, LICENSE
+    ------------------------------------
+    Public-facing documentation and any third-party tooling needed for
+    the build - written for a student with no assumed technical
+    knowledge (see WinFixIT - Downloading from GitHub.docx for the
+    matching step-by-step guide).
