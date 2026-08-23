@@ -10,18 +10,6 @@
 #	    - All the RTF (Rich Text Files) that:
 #	         - Define the Menus used by the System, and
 #		 - The Groups, Options and Advice used by the DeBloater's User Interface.
-#
-# It contains four Batch Files:
-#    - 'RUN - On2it-WinFixIT.bat'    This runs .\Scripts\WinFixIT.ps1,
-#                                    which starts the main system.
-#    - 'RUN - Win11-DeBloater.bat'   This is a temporary file that just runs  
-#				     .\Scripts\DeBloater.ps1
-#                                    on its own for testing purposes.
-#    - 'RUN - OTHER Options.bat'     This is a temporary file that just runs 
-#                                    .\Scripts\WinFixIT\Extensible Dynamic Menus.ps1
-#                                    on its own for testing purposes.
-#    - DRAW-DirectoryTree.bat	     This runs 
-#				     .\Scripts\Utilities\Draw-DirectoryTree.ps1
-#                                    which draws a directory tree for documentation purpose	
+
 
 

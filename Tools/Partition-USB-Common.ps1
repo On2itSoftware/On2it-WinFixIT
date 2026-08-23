@@ -22,11 +22,26 @@
                 sgdisk, and prints one consolidated summary once everything
                 has actually succeeded.
 
+                Select-TargetUSBDisk, Show-ExistingPartitions and
+                Confirm-WholeDiskWipe (added 2026-08-01) are the shared
+                "pick a USB disk, show what's on it, get a whole-disk-wipe
+                confirmation" flow, extracted from Clone - WinFixIT
+                USB.ps1 at Brian's request so Create - Course Distribution
+                USB.ps1 (a lighter-weight, single-partition tool built the
+                same day) shows the IDENTICAL disk-identification and
+                overwrite-warning UI rather than a second, drifting copy.
+                Select-TargetUSBDisk throws on a fatal selection failure
+                (matching Clone's original behaviour exactly) - callers
+                that loop over multiple USBs in one run (like Create -
+                Course Distribution USB.ps1) should wrap the call in
+                try/catch and continue their retry loop on failure instead
+                of letting the whole script exit.
+
    Designed by: Brian McGuigan
             of: On2it Software Ltd
        Code by: Claude
-       Version: 1
-         Dated: 17-Jul-26
+       Version: 2 (added shared disk-selection/warning functions)
+         Dated: 01-Aug-26
         Status: NEW
 #>
 
@@ -37,6 +52,73 @@ function Invoke-DiskpartScript {
     $output = diskpart /s $dpFile
     Remove-Item $dpFile -ErrorAction SilentlyContinue
     return $output
+}
+
+# Enumerates USB disks and prompts for a NUMBER if more than one is found -
+# skips the question entirely when there's only one. Throws on a fatal
+# selection failure (none found, chosen disk isn't USB) - callers that need
+# to retry instead of exiting (e.g. a multi-USB loop) should wrap this in
+# try/catch. Returns the selected Get-Disk object.
+function Select-TargetUSBDisk {
+    $usbDisks = @(Get-Disk | Where-Object BusType -eq 'USB')
+    if ($usbDisks.Count -eq 0) { throw "No USB disks found. Insert the target USB drive and re-run." }
+
+    if ($usbDisks.Count -eq 1) {
+        $tgtDisk = $usbDisks[0]
+        Write-Host "  Only one USB disk found: Disk $($tgtDisk.Number)  $($tgtDisk.FriendlyName)  ($([math]::Round($tgtDisk.Size/1GB,1)) GB) - using it." -ForegroundColor Cyan
+        return $tgtDisk
+    }
+
+    Write-Host "  Available USB disks:" -ForegroundColor Cyan
+    # Routed through Out-String/Write-Host rather than left as a bare pipeline
+    # object - a bare Format-Table -AutoSize relies on PowerShell's implicit
+    # default-formatter timing, which proved unreliable in a freshly-elevated
+    # console (confirmed 2026-08-02, Brian: table didn't reliably appear).
+    (($usbDisks | Select-Object Number, FriendlyName,
+        @{N='Size (GB)'; E={[math]::Round($_.Size / 1GB, 1)}} | Format-Table -AutoSize | Out-String)).TrimEnd() | Write-Host
+
+    # Validated locally with its own retry loop - blank/non-numeric input used
+    # to silently cast to disk 0 ([int]'' evaluates to 0 in PowerShell, no
+    # exception), sending the whole "insert USB" outer loop back to square
+    # one on every wrong keystroke - confirmed 2026-08-02 (Brian, real 2-disk
+    # test) as a genuine repeating-error loop, not just a cosmetic annoyance.
+    while ($true) {
+        Write-Host "  Enter disk NUMBER of the target USB drive: " -NoNewline -ForegroundColor Yellow
+        $inputText = Read-Host
+        $parsedNum = 0
+        if ([int]::TryParse($inputText, [ref]$parsedNum) -and ($usbDisks | Where-Object Number -eq $parsedNum)) {
+            return Get-Disk -Number $parsedNum
+        }
+        Write-Host "  '$inputText' is not one of the disk numbers listed above - try again." -ForegroundColor Red
+    }
+}
+
+# Lists every partition currently on $Disk (drive letter, label, size) so the
+# caller can see exactly what a whole-disk wipe is about to destroy - added
+# 2026-08-01 after Brian nearly reformatted a real 3-partition WinFixIT USB
+# without realising it, because the warning only named the disk, not its
+# contents.
+function Show-ExistingPartitions {
+    param([Parameter(Mandatory)] $Disk)
+    $existingPartitions = @(Get-Partition -DiskNumber $Disk.Number -ErrorAction SilentlyContinue)
+    if ($existingPartitions.Count -eq 0) { return }
+    Write-Host "  Currently on this disk (EVERYTHING WILL BE ERASED):" -ForegroundColor Yellow
+    foreach ($p in $existingPartitions) {
+        $vol    = if ($p.DriveLetter) { Get-Volume -Partition $p -ErrorAction SilentlyContinue } else { $null }
+        $label  = if ($vol -and $vol.FileSystemLabel) { $vol.FileSystemLabel } else { '(no label)' }
+        $letter = if ($p.DriveLetter) { "$($p.DriveLetter):" } else { '   ' }
+        Write-Host ("    {0,-3} {1,-28}{2,6:N1} GB" -f $letter, $label, ($p.Size / 1GB)) -ForegroundColor White
+    }
+}
+
+# Bold whole-disk-destruction warning, requiring the user to type the word
+# YES (not just Y/N) to proceed. Returns $true if confirmed.
+function Confirm-WholeDiskWipe {
+    param([Parameter(Mandatory)] [int]$DiskNum)
+    Write-Host "$([char]27)[1m  WARNING: ALL DATA ON DISK $DiskNum WILL BE PERMANENTLY DESTROYED.  $([char]27)[0m" -ForegroundColor Red -BackgroundColor White
+    Write-Host ""
+    Write-Host "  Type YES to continue: " -NoNewline -ForegroundColor Yellow
+    return ((Read-Host) -eq 'YES')
 }
 
 # A dot per second during this phase is enough reassurance that it's still
@@ -175,9 +257,16 @@ exit
         $partSummary += @{ Num = 3; Name = $L3Label; SizeMB = $P3SizeMB; FS = 'NTFS' }
     }
     Write-Host ""
-    foreach ($ps in $partSummary) {
-        $label = "Partition $($ps.Num) '$($ps.Name)'"
-        Write-Host ("    {0,-30}formatted with {1,8} MB ({2})" -f $label, $ps.SizeMB.ToString('N0'), $ps.FS) -ForegroundColor Gray
+    # Label width is computed from the actual longest label, not a fixed
+    # guess - a hardcoded width let "On2it Software Courses" overflow it
+    # entirely, gluing "formatted with" straight onto the label with no
+    # space at all (confirmed 2026-08-02, Brian). This keeps every "MB"
+    # column aligned regardless of how long any partition name is.
+    $labels     = $partSummary | ForEach-Object { "Partition $($_.Num) '$($_.Name)'" }
+    $maxLabelLen = ($labels | ForEach-Object { $_.Length } | Measure-Object -Maximum).Maximum
+    for ($i = 0; $i -lt $partSummary.Count; $i++) {
+        $ps = $partSummary[$i]
+        Write-Host ("    {0,-$($maxLabelLen + 2)}formatted with {1,8} MB ({2})" -f $labels[$i], $ps.SizeMB.ToString('N0'), $ps.FS) -ForegroundColor Gray
     }
 }
 

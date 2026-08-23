@@ -1,4 +1,4 @@
-<# Build-Your-USB.ps1
+﻿<# Build-Your-USB.ps1
    ==================
        Purpose: Public build script. Downloads the large On2it-WinFixIT content,
                 the WinPE boot files, and the (private, unlisted) Scripts bundle
@@ -6,20 +6,20 @@
                 USB-INSTALL (bundled in this repo) + the downloaded content onto it.
 
                 This is the public counterpart to the internal
-                Clone-WinFixIT-USB.ps1 build script used in-house — same
+                Clone-WinFixIT-USB.ps1 build script used in-house â€” same
                 partitioning/copy logic, but pulls the large content from public
                 (or unlisted) download links instead of a local company source
                 drive, and does not offer the Courses partition (not distributed
                 publicly).
 
                 Source (local, this repo):
-                    USB-INSTALL\                  → P1 (FAT32, 1 GB, read-only)
+                    USB-INSTALL\                  â†’ P1 (FAT32, 1 GB, read-only)
 
                 Source (downloaded from Cloudflare R2):
-                    On2it-WinFixIT content         → P2 (NTFS, remainder)
-                    WinPE boot files               → P1 (too large for git; bootmgr,
+                    On2it-WinFixIT content         â†’ P2 (NTFS, remainder)
+                    WinPE boot files               â†’ P1 (too large for git; bootmgr,
                                                         EFI\, Boot\, sources\boot.wim)
-                    Scripts bundle                 → P1\Scripts (hidden after copy)
+                    Scripts bundle                 â†’ P1\Scripts (hidden after copy)
 
    Designed by: Brian McGuigan
             of: On2it Software Ltd
@@ -30,7 +30,7 @@
                 after the original version shipped without them.
 #>
 
-# ─── Self-elevate ──────────────────────────────────────────────────────────────
+# â”€â”€â”€ Self-elevate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Double-clicking / "Run with PowerShell" launches this without admin rights.
 # Relaunch elevated (triggers a UAC prompt) and hand off to that instance.
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
@@ -54,16 +54,16 @@ if (-not $isAdmin) {
     exit
 }
 
-# ─── Configuration ────────────────────────────────────────────────────────────
+# â”€â”€â”€ Configuration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 $PostInstallZipUrl  = 'https://pub-ef7ad4a1315f418ea10408fd91c554c7.r2.dev/On2it-WinFixIT.zip'       # public link -- OK to be listed anywhere
 $ScriptsZipUrl       = 'https://pub-ef7ad4a1315f418ea10408fd91c554c7.r2.dev/USB-INSTALL-Scripts.zip' # UNLISTED link -- do not publish/index this URL
 $BootZipUrl          = 'https://pub-ef7ad4a1315f418ea10408fd91c554c7.r2.dev/USB-INSTALL-Boot.zip'    # public link -- WinPE boot binaries (too large for git)
 
 # SHA256 checksums of the zips above, verified after every download (fresh or
 # cached) to catch a truncated/corrupted download before it silently breaks the build.
-$PostInstallZipHash = '9CF9870628803A4F1F5BDFB39F1D1A968EC4D1D9CFB2086B8B62365CFF766A52'
-$ScriptsZipHash      = '5D64F5BB4E73532C7B2DB84459CAA0EA529DC06C1099D69B41F9C8FA7A4967BA'
-$BootZipHash         = '7FE946C849DABE3F7D7CBEECAF50E3D01053FFB4DE604765C9E35A03614A141F'
+$PostInstallZipHash = '2E9E15D2EB9F7520B909679D1EDA2D1F149212C24C3920D32902FE1BAE9542CA'
+$ScriptsZipHash      = 'C20AF5F6BC0B2A1AE3D53EB90848EF873A94441013B8773E439B18E59CBCE364'
+$BootZipHash         = '9BE793028A0061A9E3066D0F99E9D1191FDA5D3B9ADE40B4C833562A5964C045'
 
 $ScriptRoot   = $PSScriptRoot
 $SRC_INSTALL  = Join-Path $ScriptRoot 'USB-INSTALL'
@@ -79,9 +79,9 @@ $SAFE_LIST = @(
     'WinFixIT - User Manual.pdf',
     'Logs'
 )
-# Note: 'Scripts' is intentionally NOT in this list — hidden on the built USB,
+# Note: 'Scripts' is intentionally NOT in this list â€” hidden on the built USB,
 # same as the internal distribution build.
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 $ErrorActionPreference = 'Stop'
 # Suppresses Invoke-WebRequest's default progress bar, which mislabels large
@@ -89,7 +89,7 @@ $ErrorActionPreference = 'Stop'
 # reads like an upload) and slows big transfers down with per-chunk UI updates.
 $ProgressPreference = 'SilentlyContinue'
 
-# ─── Prevent the system from sleeping during the build ────────────────────────
+# â”€â”€â”€ Prevent the system from sleeping during the build â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Confirmed 2026-07-17: Windows sleep is driven by user input idle time, NOT by
 # background CPU/network/disk activity - a script like this gets zero automatic
 # protection. A PC going to sleep mid-download killed a 50+ minute run (the
@@ -131,9 +131,9 @@ public static extern uint SetThreadExecutionState(uint esFlags);
 # for a purely cosmetic change.
 try {
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # 1. Validate prerequisites
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 Clear-Host
 Write-Host ""
 Write-Host "  ===================================================================================================" -ForegroundColor Cyan
@@ -364,9 +364,9 @@ function Expand-VerifiedArchive {
     }
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # 2. Download On2it-WinFixIT content and Scripts bundle
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 $tempRoot       = Join-Path $env:SystemDrive 'On2it-WinFixIT-USB-Build'
 $postZip        = Join-Path $tempRoot 'On2it-WinFixIT.zip'
 $postExtract    = Join-Path $tempRoot 'On2it-WinFixIT'
@@ -392,9 +392,16 @@ Write-Host "     - USB-INSTALL-Boot.zip." -ForegroundColor White
 Write-Host ""
 Confirm-ExistingDownload -Path $postZip -Label 'On2it-WinFixIT.zip'
 if (-not (Test-Path $postZip)) {
-    $postExpectedMB = 11000
+    $postExpectedMB = 20024
     Write-Host "  Downloading On2it-WinFixIT.zip ($(Format-SizeMB $postExpectedMB), this will take a while)..." -ForegroundColor Cyan
-    Write-Host "  (On2it-WinFixIT Partition content - Over  9 GB of Windows ISOs + our LIBRARY Menu files)" -ForegroundColor DarkGray
+    # Content list grows with the zip - below 12 GB it's still just ISOs + the
+    # menu system, but past that point Applications/AI Tools/Documentation have
+    # been added, so the short description would undersell what's actually there.
+    if ($postExpectedMB -lt 12288) {
+        Write-Host "  (On2it-WinFixIT Partition content - $(Format-SizeMB $postExpectedMB) of Windows ISOs + our LIBRARY Menu files)" -ForegroundColor DarkGray
+    } else {
+        Write-Host "  (On2it-WinFixIT Partition content - $(Format-SizeMB $postExpectedMB): Windows ISOs, Multiple Application & Utility Apps, AI Tools, Documentation & Reference Library + our LIBRARY Menu files)" -ForegroundColor DarkGray
+    }
     Write-Host "  Feel free to leave it running in the background.  An estimated time remaining will appear shortly." -ForegroundColor DarkGray
     Invoke-DownloadWithDots -Uri $PostInstallZipUrl -OutFile $postZip -ExpectedTotalMB $postExpectedMB
     Write-Host "  Download complete." -ForegroundColor Cyan
@@ -419,7 +426,7 @@ Expand-VerifiedArchive -ZipPath $scriptsZip -DestPath $scriptsExtract -Label 'fi
 Write-Host ""
 Confirm-ExistingDownload -Path $bootZip -Label 'USB-INSTALL-Boot.zip'
 if (-not (Test-Path $bootZip)) {
-    $bootExpectedMB = 501
+    $bootExpectedMB = 499
     Write-Host "  Downloading USB-INSTALL-Boot.zip ($(Format-SizeMB $bootExpectedMB))..." -ForegroundColor Cyan
     Write-Host "  (Microsoft WinPE, which enables WinFixIT to run without a full OS.)" -ForegroundColor DarkGray
     Invoke-DownloadWithDots -Uri $BootZipUrl -OutFile $bootZip -ExpectedTotalMB $bootExpectedMB
@@ -433,9 +440,9 @@ $SRC_POST = $postExtract
 
 Write-Host ""
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # 3. List and select target USB disk
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 $usbDisks = Get-Disk | Where-Object BusType -eq 'USB'
 if (-not $usbDisks) { throw "No USB disks found. Insert the target USB drive and re-run." }
 
@@ -505,9 +512,9 @@ if ($tgtDisk.NumberOfPartitions -gt 0) {
     if ($doubleCheck -notmatch '^[Yy]') { throw "Aborted by user." }
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # 4. Calculate partition sizes and confirm
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # The Reserved (Courses) partition is never populated in a public build -- Courses
 # is a separate, non-public product (see project_on2it_software_courses memory) --
 # so unlike the in-house Clone-WinFixIT-USB.ps1 build, this is never dynamically
@@ -536,9 +543,9 @@ Write-Host ""
 Write-Host "  Scripts folder will be HIDDEN on this USB (same as the in-house build)." -ForegroundColor Gray
 Write-Host ""
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # 4b. Verify source content fits in planned partitions
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Get-FolderSizeMB {
     param([string]$Path)
     $sum = (Get-ChildItem -LiteralPath $Path -Recurse -File -Force -ErrorAction SilentlyContinue |
@@ -579,9 +586,9 @@ Write-Host "  Type YES to continue: " -NoNewline -ForegroundColor Yellow
 $confirm = Read-Host
 if ($confirm -ne 'YES') { throw "Aborted by user." }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # 5. Find free drive letters
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 $numPartitions = if ($coursesHasContent) { 3 } else { 2 }
 $usedLetters = (Get-PSDrive -PSProvider FileSystem).Name
 $freeLetters = [char[]](90..65) |
@@ -595,9 +602,9 @@ $tgtL1 = $freeLetters[0]   # P1 - USB-INSTALL
 $tgtL2 = $freeLetters[1]   # P2 - On2it-WinFixIT
 $tgtL3 = if ($coursesHasContent) { $freeLetters[2] } else { $null }   # P3 - Reserved (if present)
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # 6. Partition the target USB
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Shared with the in-house Clone-WinFixIT-USB.ps1 build -- see the header comment
 # in Partition-USB-Common.ps1 for how the two copies are kept in sync.
 . (Join-Path $ScriptRoot 'Tools\Partition-USB-Common.ps1')
@@ -607,9 +614,42 @@ Invoke-USBPartitioning -DiskNum $tgtDiskNum -CoursesHasContent $coursesHasConten
     -P1SizeMB $P1_SIZE_MB -P2SizeMB $P2_SIZE_MB -P3SizeMB $p3ReservedMB `
     -L2Label 'On2it-WinFixIT' -L3Label 'Reserved'
 
-# ─────────────────────────────────────────────────────────────────────────────
+# Explains what's actually in each partition, right after the sizes are shown -
+# Brian, 2026-08-16: "build anticipation of the systems capabilities" for a
+# public builder who doesn't already know what WinFixIT does.
+# $BulletChar built from its codepoint rather than typed as a literal character -
+# keeps this file's saved encoding irrelevant to whether the bullet renders right.
+$BulletChar = [char]0x2022
+Write-Host ""
+Write-Host "  USB-INSTALL will contain:" -ForegroundColor White
+Write-Host "      WinPE boot files that enable a machine to be booted without" -ForegroundColor White
+Write-Host "         an existing OS, if necessary." -ForegroundColor White
+Write-Host "      Scripts that:" -ForegroundColor White
+Write-Host "         $BulletChar Check Compatibility of any PC to run Windows 11," -ForegroundColor Gray
+Write-Host "         $BulletChar Debloat Windows 11 of unwanted Apps and Settings, either:" -ForegroundColor Gray
+Write-Host "              - Accepting our default Options, or" -ForegroundColor Gray
+Write-Host "              - Allowing you to choose your own - with FULL advice" -ForegroundColor Gray
+Write-Host "                on EVERY Option." -ForegroundColor Gray
+Write-Host ""
+Write-Host "  On2it-WinFixIT contains all the files for installing:" -ForegroundColor White
+Write-Host "      Windows 11:" -ForegroundColor White
+Write-Host "          $BulletChar BYPASS Install.iso - installs Windows 11, bypassing its" -ForegroundColor Gray
+Write-Host "            usual insistence on TPM, Secure Boot, and a UEFI BIOS." -ForegroundColor Gray
+Write-Host "          $BulletChar FULL Install.iso - installs Windows with FULL enhanced" -ForegroundColor Gray
+Write-Host "            security features." -ForegroundColor Gray
+Write-Host "      Applications like:" -ForegroundColor White
+Write-Host "          $BulletChar Office, Project, Visio - or anything else YOU add to" -ForegroundColor Gray
+Write-Host "            YOUR USB." -ForegroundColor Gray
+Write-Host "      Plus an Extensible Library of:" -ForegroundColor White
+Write-Host "          $BulletChar Curated off-line and on-line reference material," -ForegroundColor Gray
+Write-Host "            Utilities and Software Tools." -ForegroundColor Gray
+Write-Host "          $BulletChar Add your own Apps, Menu and Options, simply by adding" -ForegroundColor Gray
+Write-Host "            files and folders to the USB." -ForegroundColor Gray
+Write-Host ""
+
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # 7. Copy content
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Shared with the in-house Clone-WinFixIT-USB.ps1 build -- see the header comment
 # in Robocopy-Common.ps1 for how the two copies are kept in sync.
 . (Join-Path $ScriptRoot 'Tools\Robocopy-Common.ps1')
@@ -646,9 +686,9 @@ $exitCode = Invoke-RobocopyLargeThenSmall -SourceRoot $SRC_POST -DestDriveLetter
     )
 if ($exitCode -ge 8) { throw "Robocopy failed on On2it-WinFixIT (exit $exitCode)." }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # 8. Hide Scripts folder on USB-INSTALL
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 Write-Host ""
 Write-Host "  Hiding Scripts and system files on USB-INSTALL..." -ForegroundColor Cyan
 
@@ -658,9 +698,9 @@ Get-ChildItem -LiteralPath "$tgtL1`:\" -Force | ForEach-Object {
     }
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # 9. Set USB-INSTALL partition read-only
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 Write-Host "  Setting USB-INSTALL partition read-only..." -ForegroundColor Cyan
 $readOnlyOK = Set-PartitionReadOnlySafe -DiskNum $tgtDiskNum -DriveLetter $tgtL1
 if (-not $readOnlyOK) {
@@ -669,9 +709,9 @@ if (-not $readOnlyOK) {
     Write-Host "  write-protected. Everything else completed normally." -ForegroundColor Yellow
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Done
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 Write-Host ""
 Write-Host "  ================================================================" -ForegroundColor Green
 Write-Host "    Your On2it WinFixIT USB is ready!" -ForegroundColor Green
@@ -718,3 +758,9 @@ exit
         [Win32SleepPrevention.Kernel32]::SetThreadExecutionState($ES_CONTINUOUS) | Out-Null
     }
 }
+# -NoExit on the elevated relaunch above can otherwise swallow the "exit" calls
+# in try/catch above (a known Windows PowerShell quirk: -NoExit + -File can
+# drop back to an interactive prompt instead of actually closing the window),
+# so force it here instead - deliberately placed AFTER the finally block so
+# sleep-prevention cleanup always runs first regardless of which path got here.
+[Environment]::Exit(0)
