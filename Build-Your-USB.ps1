@@ -6,38 +6,64 @@
                 USB-INSTALL (bundled in this repo) + the downloaded content onto it.
                 
                 This is the public counterpart to the internal
-                Clone-WinFixIT-USB.ps1 build script used in-house â€” same
+                Clone-WinFixIT-USB.ps1 build script used in-house — same
                 partitioning/copy logic, but pulls the large content from public
                 (or unlisted) download links instead of a local company source
                 drive, and does not offer the Courses partition (not distributed
                 publicly).
 
                 Source (local, this repo):
-                    USB-INSTALL\                  â†’ P1 (FAT32, 1 GB, read-only)
+                    USB-INSTALL\                  → P1 (FAT32, 1 GB, read-only)
 
                 Source (downloaded from Cloudflare R2):
-                    On2it-WinFixIT content         â†’ P2 (NTFS, remainder)
-                    WinPE boot files               â†’ P1 (too large for git; bootmgr,
+                    On2it-WinFixIT content         → P2 (NTFS, remainder)
+                    WinPE boot files               → P1 (too large for git; bootmgr,
                                                         EFI\, Boot\, sources\boot.wim)
-                    Scripts bundle                 â†’ P1\Scripts (hidden after copy)
+                    Scripts bundle                 → P1\Scripts (hidden after copy)
 
    Designed by: Brian McGuigan
             of: On2it Software Ltd
        Code by: Claude
-       Version: 2
-         Dated: 14-Jul-26
+       Version: 6 (reworded the "found a previous download" prompt - R now
+                means Re-use, D means Download again, with a leading
+                "Downloading X..." header before the prompt so it's clear
+                which file's being asked about; download-progress cursor
+                now lands on a fresh line with
+                two RELATIVE newlines instead of absolute SetCursorPosition
+                arithmetic - was gluing "Download complete." straight onto
+                the end of the still-visible status line with no break;
+                USB disk selection now waits and asks for the right
+                capacity instead of throwing if none is plugged in / big
+                enough; extraction cache now keyed to the zip's own hash
+                instead of just "did extraction happen before", fixing a
+                stale-content bug that under-reported the USB size needed;
+                dropped -NoExit on the elevated relaunch - was leaving the
+                window open at a bare prompt even after "Press Enter to
+                close" had been answered, same fix already confirmed for
+                CREATE - WinFixIT USB.ps1; fixed a pre-existing text-
+                encoding corruption throughout the file's own comments)
+         Dated: 24-Aug-26
         Status: Reviewed and tested against a live R2 bucket; boot files added
                 after the original version shipped without them.
 #>
 
-# â”€â”€â”€ Self-elevate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─── Self-elevate ──────────────────────────────────────────────────────────────
 # Double-clicking / "Run with PowerShell" launches this without admin rights.
 # Relaunch elevated (triggers a UAC prompt) and hand off to that instance.
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
     try {
+        # -NoExit deliberately NOT used here - Brian, 2026-08-24: confirmed the
+        # same "window stays open at a bare prompt" symptom already fixed in
+        # CREATE - WinFixIT USB.ps1 on 2026-08-20 ("Press enter to close, need
+        # to close Window Too"). That fix was to drop -NoExit entirely, since
+        # this script already has its own "Press Enter to close" pause on both
+        # the success path and the catch block below - -NoExit was never
+        # needed for that, and Windows PowerShell can swallow a script's own
+        # `exit` under -NoExit + -File, leaving the window sitting open at an
+        # interactive prompt even after the user already answered the pause.
         Start-Process powershell.exe -Verb RunAs -ArgumentList @(
-            '-NoProfile', '-ExecutionPolicy', 'Bypass', '-NoExit', '-File', "`"$PSCommandPath`""
+            '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$PSCommandPath`""
         ) -ErrorAction Stop
     } catch {
         Write-Host ""
@@ -54,7 +80,7 @@ if (-not $isAdmin) {
     exit
 }
 
-# â”€â”€â”€ Configuration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─── Configuration ────────────────────────────────────────────────────────────
 $PostInstallZipUrl  = 'https://pub-ef7ad4a1315f418ea10408fd91c554c7.r2.dev/On2it-WinFixIT.zip'       # public link -- OK to be listed anywhere
 $ScriptsZipUrl       = 'https://pub-ef7ad4a1315f418ea10408fd91c554c7.r2.dev/USB-INSTALL-Scripts.zip' # UNLISTED link -- do not publish/index this URL
 $BootZipUrl          = 'https://pub-ef7ad4a1315f418ea10408fd91c554c7.r2.dev/USB-INSTALL-Boot.zip'    # public link -- WinPE boot binaries (too large for git)
@@ -62,7 +88,7 @@ $BootZipUrl          = 'https://pub-ef7ad4a1315f418ea10408fd91c554c7.r2.dev/USB-
 # SHA256 checksums of the zips above, verified after every download (fresh or
 # cached) to catch a truncated/corrupted download before it silently breaks the build.
 $PostInstallZipHash = '2E9E15D2EB9F7520B909679D1EDA2D1F149212C24C3920D32902FE1BAE9542CA'
-$ScriptsZipHash      = 'C20AF5F6BC0B2A1AE3D53EB90848EF873A94441013B8773E439B18E59CBCE364'
+$ScriptsZipHash      = 'A10B0E936E32389D0688D40C28720D6BAAF6CAEAB59A445576F8E7537219691E'
 $BootZipHash         = '9BE793028A0061A9E3066D0F99E9D1191FDA5D3B9ADE40B4C833562A5964C045'
 
 $ScriptRoot   = $PSScriptRoot
@@ -79,9 +105,9 @@ $SAFE_LIST = @(
     'WinFixIT - User Manual.pdf',
     'Logs'
 )
-# Note: 'Scripts' is intentionally NOT in this list â€” hidden on the built USB,
+# Note: 'Scripts' is intentionally NOT in this list — hidden on the built USB,
 # same as the internal distribution build.
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ──────────────────────────────────────────────────────────────────────────────
 
 $ErrorActionPreference = 'Stop'
 # Suppresses Invoke-WebRequest's default progress bar, which mislabels large
@@ -89,7 +115,7 @@ $ErrorActionPreference = 'Stop'
 # reads like an upload) and slows big transfers down with per-chunk UI updates.
 $ProgressPreference = 'SilentlyContinue'
 
-# â”€â”€â”€ Prevent the system from sleeping during the build â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─── Prevent the system from sleeping during the build ────────────────────────
 # Confirmed 2026-07-17: Windows sleep is driven by user input idle time, NOT by
 # background CPU/network/disk activity - a script like this gets zero automatic
 # protection. A PC going to sleep mid-download killed a 50+ minute run (the
@@ -131,9 +157,9 @@ public static extern uint SetThreadExecutionState(uint esFlags);
 # for a purely cosmetic change.
 try {
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 # 1. Validate prerequisites
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 Clear-Host
 Write-Host ""
 Write-Host "  ===================================================================================================" -ForegroundColor Cyan
@@ -153,7 +179,7 @@ function Test-DownloadHash {
         [string]$ExpectedHash,
         [string]$Label
     )
-    Write-Host "  Verifying Hash Total for $Label to ensure it was downloaded correctly..." -ForegroundColor Cyan
+    Write-Host "  Verifying Hash Total for $Label to ensure it was downloaded correctly..." -ForegroundColor Gray
     $actualHash = (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash
     if ($actualHash -ne $ExpectedHash) {
         Remove-Item -LiteralPath $Path -Force -ErrorAction SilentlyContinue
@@ -162,7 +188,10 @@ function Test-DownloadHash {
     # Previously silent on success, so a passing check gave no visible sign
     # before the next (unrelated) file's prompt appeared - looked like the
     # run had skipped or jumped ahead. Brian, 2026-08-13.
-    Write-Host "  Hash verified OK." -ForegroundColor Cyan
+    Write-Host "  Hash verified OK." -ForegroundColor Green
+    # Returned so Expand-VerifiedArchive can tag its extraction cache with this
+    # exact hash, instead of hashing the same multi-GB file a second time.
+    return $actualHash
 }
 
 # Shows GB for anything gigabyte-sized, MB otherwise -- "0.0 GB" for the tiny
@@ -202,7 +231,6 @@ function Invoke-DownloadWithDots {
 
     $startTime      = Get-Date
     $lastStatusTime = $startTime
-    $lastStatusRow  = $null   # tracks where to land the cursor cleanly once the loop ends
     $lastProgressMB = 0
     $stalledChecks  = 0
     $MAX_STALLED_CHECKS = 5   # ~5 minutes of zero progress (checked once per 60s status tick)
@@ -259,7 +287,6 @@ function Invoke-DownloadWithDots {
                     Write-Host ""
                     $statusRow = [Console]::CursorTop
                     $dotsRow   = $statusRow - 1
-                    $lastStatusRow = $statusRow
 
                     [Console]::SetCursorPosition(0, $statusRow)
                     Write-Host -NoNewline (' ' * ($windowWidth - 1))
@@ -282,12 +309,25 @@ function Invoke-DownloadWithDots {
 
     # Land the cursor on a genuinely fresh row before returning, so whatever the
     # caller prints next (e.g. "Download complete.") doesn't land on top of the
-    # leftover status/dots text instead of below it (confirmed 2026-07-17: the
-    # plain "Write-Host ''" this replaced could put the cursor back on the
-    # status row itself, since that row sits directly below the dots row).
-    if ($canRedraw -and $null -ne $lastStatusRow) {
-        try { [Console]::SetCursorPosition(0, $lastStatusRow + 1) } catch { Write-Host "" }
+    # leftover status/dots text instead of below it.
+    if ($canRedraw) {
+        # TWO plain, RELATIVE newlines - not absolute SetCursorPosition
+        # arithmetic. Found for real 2026-08-24 (Brian, live test): the
+        # previous "jump to $lastStatusRow + 1" approach glued the caller's
+        # next line straight onto the end of the still-visible status line
+        # with no break at all - the exact same one-row-short landing the
+        # 2026-07-17 fix below was meant to prevent, just resurfacing a
+        # different way (almost certainly SetCursorPosition behaving
+        # inconsistently under some terminal hosts - see
+        # project_conpty_scroll_bug). The loop always leaves the cursor on
+        # the dots row (one row above the status row) when it exits, so two
+        # relative newlines reliably clear both rows regardless of what the
+        # terminal host's own absolute row numbering was actually doing.
+        Write-Host ""
+        Write-Host ""
     } else {
+        # Confirmed 2026-07-17: landing here after plain-scrolling (no
+        # redraw) dots needs just the one newline to reach a fresh line.
         Write-Host ""
     }
 
@@ -313,18 +353,23 @@ function Confirm-ExistingDownload {
     # them" - without the path, there's no way to know WHERE to go delete a
     # leftover file from (it's $env:SystemDrive\On2it-WinFixIT-USB-Build,
     # not Downloads or anywhere else a person might expect).
+    #
+    # Wording/colours/response letters reworked 2026-08-24 (Brian, live
+    # test): R now means Re-use (not Re-download as before - the letters
+    # were swapped, not just relabelled), D means Download again. Blank
+    # Enter still falls through to the same safe default as before (get a
+    # fresh copy), since "" doesn't match '^[Rr]'.
     $flagPath = "$Path.complete"
+    Write-Host "  Found a previous version at:" -ForegroundColor White
     if (Test-Path $flagPath) {
         $completedAt = Get-Content -LiteralPath $flagPath -Raw -ErrorAction SilentlyContinue
-        Write-Host "  Found a previously downloaded $Label, completed $completedAt." -ForegroundColor White
-        Write-Host "    $Path" -ForegroundColor DarkGray
+        Write-Host "    $Path, dated $completedAt" -ForegroundColor White
     } else {
-        Write-Host "  Found a $Label left over from an earlier run that may not have finished downloading." -ForegroundColor White
-        Write-Host "    $Path" -ForegroundColor DarkGray
+        Write-Host "    $Path (incomplete - may not have finished downloading)" -ForegroundColor White
     }
-    Write-Host "  Re-download it, or use what's already there? [R]e-download (default) / [U]se existing: " -NoNewline -ForegroundColor Yellow
+    Write-Host "  Would you like to Re-use it or Download again? (R/D): " -NoNewline -ForegroundColor Yellow
     $answer = Read-Host
-    if ($answer -notmatch '^[Uu]') {
+    if ($answer -notmatch '^[Rr]') {
         Remove-Item -LiteralPath $Path -Force -ErrorAction SilentlyContinue
         Remove-Item -LiteralPath $flagPath -Force -ErrorAction SilentlyContinue
     }
@@ -342,21 +387,34 @@ function Set-DownloadCompleteFlag {
 # otherwise silently skip re-extracting and build a USB with incomplete
 # content, no error at all. Re-extracting is cheap (unlike re-downloading), so
 # this just fixes it automatically rather than asking.
+#
+# The flag file's content is the SOURCE ZIP's own hash, not just a timestamp -
+# found for real 2026-08-24 (Brian, live test): $tempRoot deliberately persists
+# across separate runs (so an interrupted download/extraction can resume), but
+# that also means an EARLIER test's smaller/older zip could already sit
+# extracted here with its own "done" flag already in place. A fresh, larger
+# zip downloaded and hash-verified in THIS run then got silently skipped -
+# "12 GB needed" was measuring that stale leftover content, not the zip that
+# had actually just been verified. Tying the flag to the zip's hash means any
+# change to what was actually downloaded correctly invalidates the cache.
 function Expand-VerifiedArchive {
     param(
         [string]$ZipPath,
+        [string]$ZipHash,
         [string]$DestPath,
         [string]$Label
     )
-    $flagPath = Join-Path $DestPath '_extraction_complete.txt'
-    if ((Test-Path $DestPath) -and -not (Test-Path $flagPath)) {
+    $flagPath   = Join-Path $DestPath '_extraction_complete.txt'
+    $cachedHash = if (Test-Path $flagPath) { (Get-Content -LiteralPath $flagPath -Raw -ErrorAction SilentlyContinue).Trim() } else { $null }
+
+    if ((Test-Path $DestPath) -and $cachedHash -ne $ZipHash) {
         Remove-Item -LiteralPath $DestPath -Recurse -Force -ErrorAction SilentlyContinue
     }
     if (-not (Test-Path $DestPath)) {
-        Write-Host "  Extracting $Label..." -ForegroundColor Cyan
+        Write-Host "  Extracting $Label..." -ForegroundColor Gray
         try {
             Expand-Archive -Path $ZipPath -DestinationPath $DestPath -Force
-            Get-Date -Format 'yyyy-MM-dd HH:mm:ss' | Set-Content -LiteralPath $flagPath
+            Set-Content -LiteralPath $flagPath -Value $ZipHash -NoNewline
         } catch {
             if (Test-Path $DestPath) { Remove-Item $DestPath -Recurse -Force }
             throw
@@ -364,9 +422,9 @@ function Expand-VerifiedArchive {
     }
 }
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 # 2. Download On2it-WinFixIT content and Scripts bundle
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 $tempRoot       = Join-Path $env:SystemDrive 'On2it-WinFixIT-USB-Build'
 $postZip        = Join-Path $tempRoot 'On2it-WinFixIT.zip'
 $postExtract    = Join-Path $tempRoot 'On2it-WinFixIT'
@@ -390,84 +448,157 @@ Write-Host "     - USB-INSTALL-Scripts.zip," -ForegroundColor White
 Write-Host "     - USB-INSTALL-Boot.zip." -ForegroundColor White
 
 Write-Host ""
+$postExpectedMB = 20024
+Write-Host "  Downloading On2it-WinFixIT.zip ($(Format-SizeMB $postExpectedMB), this will take a while)..." -ForegroundColor Cyan
 Confirm-ExistingDownload -Path $postZip -Label 'On2it-WinFixIT.zip'
 if (-not (Test-Path $postZip)) {
-    $postExpectedMB = 20024
-    Write-Host "  Downloading On2it-WinFixIT.zip ($(Format-SizeMB $postExpectedMB), this will take a while)..." -ForegroundColor Cyan
     # Content list grows with the zip - below 12 GB it's still just ISOs + the
     # menu system, but past that point Applications/AI Tools/Documentation have
     # been added, so the short description would undersell what's actually there.
     if ($postExpectedMB -lt 12288) {
-        Write-Host "  (On2it-WinFixIT Partition content - $(Format-SizeMB $postExpectedMB) of Windows ISOs + our LIBRARY Menu files)" -ForegroundColor DarkGray
+        Write-Host "  On2it-WinFixIT Partition - $(Format-SizeMB $postExpectedMB) contains:" -ForegroundColor DarkGray
+        Write-Host "     TWO Windows ISOs" -ForegroundColor DarkGray
+        Write-Host "     + Our LIBRARY Menu files" -ForegroundColor DarkGray
     } else {
-        Write-Host "  (On2it-WinFixIT Partition content - $(Format-SizeMB $postExpectedMB): Windows ISOs, Multiple Application & Utility Apps, AI Tools, Documentation & Reference Library + our LIBRARY Menu files)" -ForegroundColor DarkGray
+        Write-Host "  On2it-WinFixIT Partition - $(Format-SizeMB $postExpectedMB) contains: "  -ForegroundColor DarkGray
+        Write-Host "     TWO Windows ISOs, "  -ForegroundColor DarkGray
+        Write-Host "     Multiple Application & Utility Apps, "  -ForegroundColor DarkGray
+        Write-Host "     AI Tools, "  -ForegroundColor DarkGray
+        Write-Host "     Documentation & Reference Library + "  -ForegroundColor DarkGray
+        Write-Host "     + Our LIBRARY Menu files" -ForegroundColor DarkGray
     }
     Write-Host "  Feel free to leave it running in the background.  An estimated time remaining will appear shortly." -ForegroundColor DarkGray
     Invoke-DownloadWithDots -Uri $PostInstallZipUrl -OutFile $postZip -ExpectedTotalMB $postExpectedMB
-    Write-Host "  Download complete." -ForegroundColor Cyan
+    Write-Host "  Download complete." -ForegroundColor Gray
+    Write-Host ""
 }
-Test-DownloadHash -Path $postZip -ExpectedHash $PostInstallZipHash -Label 'On2it-WinFixIT.zip'
+$postZipHash = Test-DownloadHash -Path $postZip -ExpectedHash $PostInstallZipHash -Label 'On2it-WinFixIT.zip'
 Set-DownloadCompleteFlag -Path $postZip
-Expand-VerifiedArchive -ZipPath $postZip -DestPath $postExtract -Label 'On2it-WinFixIT content'
+Expand-VerifiedArchive -ZipPath $postZip -ZipHash $postZipHash -DestPath $postExtract -Label 'On2it-WinFixIT content'
 
 Write-Host ""
+$scriptsExpectedMB = 1
+Write-Host "  Downloading USB-INSTALL-Scripts.zip ($(Format-SizeMB $scriptsExpectedMB))..." -ForegroundColor Cyan
 Confirm-ExistingDownload -Path $scriptsZip -Label 'USB-INSTALL-Scripts.zip'
 if (-not (Test-Path $scriptsZip)) {
-    $scriptsExpectedMB = 7
-    Write-Host "  Downloading USB-INSTALL-Scripts.zip ($(Format-SizeMB $scriptsExpectedMB))..." -ForegroundColor Cyan
     Write-Host "  (This is the logic that drives the system.)" -ForegroundColor DarkGray
     Invoke-DownloadWithDots -Uri $ScriptsZipUrl -OutFile $scriptsZip -ExpectedTotalMB $scriptsExpectedMB
-    Write-Host "  Download complete." -ForegroundColor Cyan
+    Write-Host "  Download complete." -ForegroundColor Gray
+    Write-Host ""
 }
-Test-DownloadHash -Path $scriptsZip -ExpectedHash $ScriptsZipHash -Label 'USB-INSTALL-Scripts.zip'
+$scriptsZipHash = Test-DownloadHash -Path $scriptsZip -ExpectedHash $ScriptsZipHash -Label 'USB-INSTALL-Scripts.zip'
 Set-DownloadCompleteFlag -Path $scriptsZip
-Expand-VerifiedArchive -ZipPath $scriptsZip -DestPath $scriptsExtract -Label 'files from USB-INSTALL-Scripts.zip'
+Expand-VerifiedArchive -ZipPath $scriptsZip -ZipHash $scriptsZipHash -DestPath $scriptsExtract -Label 'files from USB-INSTALL-Scripts.zip'
 
 Write-Host ""
+$bootExpectedMB = 499
+Write-Host "  Downloading USB-INSTALL-Boot.zip ($(Format-SizeMB $bootExpectedMB))..." -ForegroundColor Cyan
 Confirm-ExistingDownload -Path $bootZip -Label 'USB-INSTALL-Boot.zip'
 if (-not (Test-Path $bootZip)) {
-    $bootExpectedMB = 499
-    Write-Host "  Downloading USB-INSTALL-Boot.zip ($(Format-SizeMB $bootExpectedMB))..." -ForegroundColor Cyan
     Write-Host "  (Microsoft WinPE, which enables WinFixIT to run without a full OS.)" -ForegroundColor DarkGray
     Invoke-DownloadWithDots -Uri $BootZipUrl -OutFile $bootZip -ExpectedTotalMB $bootExpectedMB
-    Write-Host "  Download complete." -ForegroundColor Cyan
+    Write-Host "  Download complete." -ForegroundColor Gray
+    Write-Host ""
 }
-Test-DownloadHash -Path $bootZip -ExpectedHash $BootZipHash -Label 'USB-INSTALL-Boot.zip'
+$bootZipHash = Test-DownloadHash -Path $bootZip -ExpectedHash $BootZipHash -Label 'USB-INSTALL-Boot.zip'
 Set-DownloadCompleteFlag -Path $bootZip
-Expand-VerifiedArchive -ZipPath $bootZip -DestPath $bootExtract -Label 'files from USB-INSTALL-Boot.zip'
+Expand-VerifiedArchive -ZipPath $bootZip -ZipHash $bootZipHash -DestPath $bootExtract -Label 'files from USB-INSTALL-Boot.zip'
 
 $SRC_POST = $postExtract
 
 Write-Host ""
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# 3. List and select target USB disk
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-$usbDisks = Get-Disk | Where-Object BusType -eq 'USB'
-if (-not $usbDisks) { throw "No USB disks found. Insert the target USB drive and re-run." }
-
-Write-Host "  Available USB disks:" -ForegroundColor Cyan
-$usbDisks | Select-Object `
-    @{N='Drive'; E={
-        $letters = Get-Partition -DiskNumber $_.Number -ErrorAction SilentlyContinue |
-            Get-Volume -ErrorAction SilentlyContinue |
-            Where-Object { $_.DriveLetter } |
-            Select-Object -ExpandProperty DriveLetter |
-            Sort-Object
-        if ($letters) { ($letters | ForEach-Object { "$_`:" }) -join ', ' } else { '(none)' }
-    }},
-    @{N='No'; E={$_.Number}},
-    @{N='Name'; E={$_.FriendlyName}},
-    @{N='Size'; E={"$([math]::Round($_.Size / 1GB, 1)) GB"}} |
-    Format-Table -AutoSize
-
-Write-Host "  Enter disk NUMBER of the target USB drive: " -NoNewline -ForegroundColor Yellow
-$tgtDiskNum = [int](Read-Host)
-$tgtDisk    = Get-Disk -Number $tgtDiskNum
-
-if ($tgtDisk.BusType -ne 'USB') {
-    throw "Disk $tgtDiskNum is not a USB drive. Aborted for safety."
+# ─────────────────────────────────────────────────────────────────────────────
+# 3. Check downloaded content sizes, then list and select a USB disk with
+#    enough capacity
+# ─────────────────────────────────────────────────────────────────────────────
+function Get-FolderSizeMB {
+    param([string]$Path)
+    $sum = (Get-ChildItem -LiteralPath $Path -Recurse -File -Force -ErrorAction SilentlyContinue |
+        Measure-Object -Property Length -Sum).Sum
+    if (-not $sum) { $sum = 0 }
+    return [math]::Ceiling($sum / 1MB)
 }
+
+Write-Host "  Checking downloaded content sizes..." -ForegroundColor Cyan
+$srcInstallMB = (Get-FolderSizeMB $SRC_INSTALL) + (Get-FolderSizeMB $scriptsExtract) + (Get-FolderSizeMB $bootExtract)
+$srcPostMB    = Get-FolderSizeMB $SRC_POST
+
+if ($srcInstallMB -gt $P1_SIZE_MB) {
+    # P1 is a fixed size regardless of which USB is chosen - a bigger USB
+    # can't fix this, so it's not part of the capacity wait-loop below.
+    throw "USB-INSTALL content (+ Scripts + Boot files) is $srcInstallMB MB, which no longer fits the fixed $P1_SIZE_MB MB USB-INSTALL partition. This is a build configuration problem, not something a bigger USB fixes - please contact On2it Software Support."
+}
+
+Write-Host ""
+
+# Now that the actual downloaded content size is known, the exact USB capacity
+# needed can be stated up front - Brian, 2026-08-24: "if the User had not
+# plugged in a USB, it needs to ask for one of the right capacity" - rather
+# than the old behaviour of throwing immediately ("No USB disks found... re-
+# run") and forcing the whole script to be started over just because nothing
+# was plugged in yet, or because what was plugged in was too small. This
+# loops instead, telling the user exactly what to insert and re-scanning once
+# they've done it - the already-downloaded/verified zips are untouched either
+# way, so nothing is lost by waiting here.
+$minDiskMB = $P1_SIZE_MB + $srcPostMB + $GPT_OVERHEAD_MB
+$minDiskGB = [math]::Round($minDiskMB / 1024, 1)
+
+$tgtDisk = $null
+while (-not $tgtDisk) {
+    $usbDisks  = @(Get-Disk | Where-Object BusType -eq 'USB')
+    $bigEnough = @($usbDisks | Where-Object { ($_.Size / 1MB) -ge $minDiskMB })
+
+    if ($bigEnough.Count -eq 0) {
+        if ($usbDisks.Count -eq 0) {
+            Write-Host "  No USB drive detected." -ForegroundColor Yellow
+        } else {
+            Write-Host "  Found $($usbDisks.Count) USB drive(s) plugged in, but none big enough:" -ForegroundColor Yellow
+            $usbDisks | ForEach-Object {
+                Write-Host "    Disk $($_.Number)  $($_.FriendlyName)  ($([math]::Round($_.Size/1GB,1)) GB)" -ForegroundColor Yellow
+            }
+        }
+        Write-Host "  Please plug in a USB drive of at least $minDiskGB GB (32GB+ recommended)." -ForegroundColor White
+        Write-Host "  Press Enter once it's ready: " -NoNewline -ForegroundColor Yellow
+        Read-Host
+        continue
+    }
+
+    if ($bigEnough.Count -eq 1) {
+        $tgtDisk = $bigEnough[0]
+        Write-Host "  Only one suitable USB disk found: Disk $($tgtDisk.Number)  $($tgtDisk.FriendlyName)  ($([math]::Round($tgtDisk.Size/1GB,1)) GB) - using it." -ForegroundColor White
+        break
+    }
+
+    Write-Host "  Available USB disks (at least $minDiskGB GB needed):" -ForegroundColor Cyan
+    $bigEnough | Select-Object `
+        @{N='Drive'; E={
+            $letters = Get-Partition -DiskNumber $_.Number -ErrorAction SilentlyContinue |
+                Get-Volume -ErrorAction SilentlyContinue |
+                Where-Object { $_.DriveLetter } |
+                Select-Object -ExpandProperty DriveLetter |
+                Sort-Object
+            if ($letters) { ($letters | ForEach-Object { "$_`:" }) -join ', ' } else { '(none)' }
+        }},
+        @{N='No'; E={$_.Number}},
+        @{N='Name'; E={$_.FriendlyName}},
+        @{N='Size'; E={"$([math]::Round($_.Size / 1GB, 1)) GB"}} |
+        Format-Table -AutoSize
+
+    Write-Host "  Enter disk NUMBER of the target USB drive: " -NoNewline -ForegroundColor Yellow
+    $enteredNum = 0
+    if (-not [int]::TryParse((Read-Host), [ref]$enteredNum)) {
+        Write-Host "  Not a valid disk number - try again." -ForegroundColor Red
+        continue
+    }
+    $selected = $bigEnough | Where-Object Number -eq $enteredNum
+    if (-not $selected) {
+        Write-Host "  '$enteredNum' is not one of the disk numbers listed above - try again." -ForegroundColor Red
+        continue
+    }
+    $tgtDisk = $selected
+}
+$tgtDiskNum = $tgtDisk.Number
 
 # Regardless of how many USB drives are attached, if the selected drive already
 # has partitions on it, show what's there as a last check before it gets
@@ -512,9 +643,9 @@ if ($tgtDisk.NumberOfPartitions -gt 0) {
     if ($doubleCheck -notmatch '^[Yy]') { throw "Aborted by user." }
 }
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 # 4. Calculate partition sizes and confirm
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 # The Reserved (Courses) partition is never populated in a public build -- Courses
 # is a separate, non-public product (see project_on2it_software_courses memory) --
 # so unlike the in-house Clone-WinFixIT-USB.ps1 build, this is never dynamically
@@ -543,38 +674,17 @@ Write-Host ""
 Write-Host "  Scripts folder will be HIDDEN on this USB (same as the in-house build)." -ForegroundColor Gray
 Write-Host ""
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# 4b. Verify source content fits in planned partitions
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-function Get-FolderSizeMB {
-    param([string]$Path)
-    $sum = (Get-ChildItem -LiteralPath $Path -Recurse -File -Force -ErrorAction SilentlyContinue |
-        Measure-Object -Property Length -Sum).Sum
-    if (-not $sum) { $sum = 0 }
-    return [math]::Ceiling($sum / 1MB)
-}
-
-Write-Host "  Checking downloaded content sizes..." -ForegroundColor Cyan
-$srcInstallMB = (Get-FolderSizeMB $SRC_INSTALL) + (Get-FolderSizeMB $scriptsExtract) + (Get-FolderSizeMB $bootExtract)
-$srcPostMB    = Get-FolderSizeMB $SRC_POST
-
-$fitProblems = @()
-if ($srcInstallMB -gt $P1_SIZE_MB) {
-    $fitProblems += "    USB-INSTALL (+ Scripts): $srcInstallMB MB needed, $P1_SIZE_MB MB available"
-}
+# ─────────────────────────────────────────────────────────────────────────────
+# 4b. Final fit safety check
+# ─────────────────────────────────────────────────────────────────────────────
+# Should never actually trigger now - the USB wait-loop in step 3 already only
+# offers disks big enough for $srcPostMB in the first place. Kept as a cheap
+# defence-in-depth check rather than trusting that filter alone, e.g. if a
+# disk reports slightly less usable space once actually partitioned than
+# Get-Disk's raw .Size suggested.
 if ($srcPostMB -gt $P2_SIZE_MB) {
-    $fitProblems += "    On2it-WinFixIT: $srcPostMB MB needed, $P2_SIZE_MB MB available"
+    throw "Downloaded content does not fit on this USB after all: On2it-WinFixIT needs $srcPostMB MB, only $P2_SIZE_MB MB available. Please re-run with a larger USB (32GB+ recommended)."
 }
-
-if ($fitProblems.Count -gt 0) {
-    Write-Host ""
-    Write-Host "  Downloaded content does not fit on this USB:" -ForegroundColor Red
-    $fitProblems | ForEach-Object { Write-Host $_ -ForegroundColor Red }
-    Write-Host ""
-    throw "Aborted: target USB is too small for the content. Use a larger USB (32GB+ recommended)."
-}
-Write-Host "  All content fits within the planned partitions." -ForegroundColor Green
-Write-Host ""
 
 # ANSI bold ($([char]27)[1m ... [0m) -- Write-Host has no native bold switch.
 # Assumes a VT100-capable console, which Windows 10/11's default conhost and
@@ -586,9 +696,9 @@ Write-Host "  Type YES to continue: " -NoNewline -ForegroundColor Yellow
 $confirm = Read-Host
 if ($confirm -ne 'YES') { throw "Aborted by user." }
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 # 5. Find free drive letters
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 $numPartitions = if ($coursesHasContent) { 3 } else { 2 }
 $usedLetters = (Get-PSDrive -PSProvider FileSystem).Name
 $freeLetters = [char[]](90..65) |
@@ -602,9 +712,9 @@ $tgtL1 = $freeLetters[0]   # P1 - USB-INSTALL
 $tgtL2 = $freeLetters[1]   # P2 - On2it-WinFixIT
 $tgtL3 = if ($coursesHasContent) { $freeLetters[2] } else { $null }   # P3 - Reserved (if present)
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 # 6. Partition the target USB
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 # Shared with the in-house Clone-WinFixIT-USB.ps1 build -- see the header comment
 # in Partition-USB-Common.ps1 for how the two copies are kept in sync.
 . (Join-Path $ScriptRoot 'Tools\Partition-USB-Common.ps1')
@@ -647,9 +757,9 @@ Write-Host "          $BulletChar Add your own Apps, Menu and Options, simply by
 Write-Host "            files and folders to the USB." -ForegroundColor Gray
 Write-Host ""
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 # 7. Copy content
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 # Shared with the in-house Clone-WinFixIT-USB.ps1 build -- see the header comment
 # in Robocopy-Common.ps1 for how the two copies are kept in sync.
 . (Join-Path $ScriptRoot 'Tools\Robocopy-Common.ps1')
@@ -686,9 +796,9 @@ $exitCode = Invoke-RobocopyLargeThenSmall -SourceRoot $SRC_POST -DestDriveLetter
     )
 if ($exitCode -ge 8) { throw "Robocopy failed on On2it-WinFixIT (exit $exitCode)." }
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 # 8. Hide Scripts folder on USB-INSTALL
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 Write-Host ""
 Write-Host "  Hiding Scripts and system files on USB-INSTALL..." -ForegroundColor Cyan
 
@@ -698,9 +808,9 @@ Get-ChildItem -LiteralPath "$tgtL1`:\" -Force | ForEach-Object {
     }
 }
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 # 9. Set USB-INSTALL partition read-only
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 Write-Host "  Setting USB-INSTALL partition read-only..." -ForegroundColor Cyan
 $readOnlyOK = Set-PartitionReadOnlySafe -DiskNum $tgtDiskNum -DriveLetter $tgtL1
 if (-not $readOnlyOK) {
@@ -709,9 +819,9 @@ if (-not $readOnlyOK) {
     Write-Host "  write-protected. Everything else completed normally." -ForegroundColor Yellow
 }
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 # Done
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 Write-Host ""
 Write-Host "  ================================================================" -ForegroundColor Green
 Write-Host "    Your On2it WinFixIT USB is ready!" -ForegroundColor Green
@@ -758,9 +868,3 @@ exit
         [Win32SleepPrevention.Kernel32]::SetThreadExecutionState($ES_CONTINUOUS) | Out-Null
     }
 }
-# -NoExit on the elevated relaunch above can otherwise swallow the "exit" calls
-# in try/catch above (a known Windows PowerShell quirk: -NoExit + -File can
-# drop back to an interactive prompt instead of actually closing the window),
-# so force it here instead - deliberately placed AFTER the finally block so
-# sleep-prevention cleanup always runs first regardless of which path got here.
-[Environment]::Exit(0)
