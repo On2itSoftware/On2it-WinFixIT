@@ -88,7 +88,7 @@ $BootZipUrl          = 'https://pub-ef7ad4a1315f418ea10408fd91c554c7.r2.dev/USB-
 # SHA256 checksums of the zips above, verified after every download (fresh or
 # cached) to catch a truncated/corrupted download before it silently breaks the build.
 $PostInstallZipHash = '2E9E15D2EB9F7520B909679D1EDA2D1F149212C24C3920D32902FE1BAE9542CA'
-$ScriptsZipHash      = 'A10B0E936E32389D0688D40C28720D6BAAF6CAEAB59A445576F8E7537219691E'
+$ScriptsZipHash      = 'E92A4B68024CB9E2F4BFAC717F6F74824F1B2A44487CED1A80A5CFE367ED90AF'
 $BootZipHash         = '9BE793028A0061A9E3066D0F99E9D1191FDA5D3B9ADE40B4C833562A5964C045'
 
 $ScriptRoot   = $PSScriptRoot
