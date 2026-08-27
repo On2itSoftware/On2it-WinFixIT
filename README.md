@@ -12,6 +12,10 @@ A self-contained Windows Compatibility Checker, Installer, DeBloater, and Adviso
 
 **A note on Windows installation media**: the Windows ISOs included in the download are sourced from a third party and require your own valid Windows license/product key to install and activate — they're not included with WinFixIT itself.  The included `BYPASS Install.iso` (which skips the usual TPM/Secure Boot checks) was created using Rufus 4.15p.  If you'd rather supply your own, simply substitute your own `FULL Install.iso` and `BYPASS Install.iso` in the `Install\Windows` folder of the `On2it-WinFixIT` partition.  (Office, Project, and Visio installers are *not* included in this public build at all — those are licensed specifically to On2it Software Ltd and won't work with anyone else's key anyway.)
 
+## 👀 Quick Preview
+
+**[Read the Quick Preview](https://raw.githubusercontent.com/On2itSoftware/On2it-WinFixIT/master/Docs/WinFixIT%20-%20Quick%20Preview.pdf)** — opens on its own in your browser's PDF viewer, full width.  Real screenshots from the system itself — see what it actually looks like before you download anything.
+
 ## 📘 User Manual
 
 **[Read the User Manual](https://raw.githubusercontent.com/On2itSoftware/On2it-WinFixIT/master/USB-INSTALL/WinFixIT%20-%20User%20Manual.pdf)** — opens on its own in your browser's PDF viewer, full width.
