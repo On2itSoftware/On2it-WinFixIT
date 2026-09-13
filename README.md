@@ -2,15 +2,24 @@
 
 A self-contained Windows Compatibility Checker, Installer, DeBloater, and Advisor — build your own copy of the On2it-WinFixIT USB at home.
 
-- Checks compatibility of any PC to run Windows 11
-- Installs it, bypassing its usual TPM requirements, if needed
-- Installs Office and any other apps loaded on the USB
-- Debloats Windows 11's unwanted apps and settings — with complete advice, and the **pros and cons** of every setting
-- Choose what **you** want, or accept our recommended advice — the choice is yours!
-- Extensive library of curated off-line and on-line reference material, utilities, and software tools
-- Extensible — add your own apps, menu entries, and options simply by adding files and folders to the USB 😊
+WinFixIT has a:
+
+- **Windows 11 Compatibility Checker** — works even before Windows is installed
+- **BYPASS Installer** — installs Windows 11 on older hardware, bypassing Microsoft's TPM and Secure Boot requirements where necessary
+- **Comprehensive DeBloater** — over 80 options, each with full plain-English advice, not just a checkbox and a technical name
+- **Expandable Library** — installable apps, curated reference material, utilities and software tools (currently 60 menus, 225 options) — and you can add your own
+
+**Why I built it**: I spent decades building software.  I'd more or less retired — until upgrading to Windows 11 myself left me thoroughly confused by the bloat and the setup screens.  I didn't want my students facing the same thing.  So, I built WinFixIT, with two AI helpers — Copilot, then Claude — supplying the expertise I didn't have.  It's free — please try it, I'd love your feedback.
+
+Connect with me on [LinkedIn](https://www.linkedin.com/in/BrianMcGuigan/).
 
 **A note on Windows installation media**: the Windows ISOs included in the download are sourced from a third party and require your own valid Windows license/product key to install and activate — they're not included with WinFixIT itself.  The included `BYPASS Install.iso` (which skips the usual TPM/Secure Boot checks) was created using Rufus 4.15p.  If you'd rather supply your own, simply substitute your own `FULL Install.iso` and `BYPASS Install.iso` in the `Install\Windows` folder of the `On2it-WinFixIT` partition.  (Office, Project, and Visio installers are *not* included in this public build at all — those are licensed specifically to On2it Software Ltd and won't work with anyone else's key anyway.)
+
+## 🎬 Watch the Video Preview (8:30)
+
+[![Watch the WinFixIT Video Preview](Docs/WinFixIT%20-%20Video%20Preview%20Thumbnail.png)](https://youtu.be/LbuuGmadV8o)
+
+See it in action — the Compatibility Checker, BYPASS Installer, DeBloater, and the Library, all walked through.
 
 ## 👀 Quick Preview
 
