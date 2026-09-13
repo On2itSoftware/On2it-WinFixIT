@@ -15,7 +15,7 @@ Connect with me on [LinkedIn](https://www.linkedin.com/in/BrianMcGuigan/).
 
 ## 🎬 Watch the Video Preview (8:30)
 
-[![Watch the WinFixIT Video Preview](Docs/WinFixIT%20-%20Video%20Preview%20Thumbnail.png)](https://youtu.be/LbuuGmadV8o)
+[![Watch the WinFixIT Video Preview](Docs/WinFixIT%20-%20Video%20Preview%20Thumbnail.jpg)](https://youtu.be/LbuuGmadV8o)
 
 See it in action — the Compatibility Checker, BYPASS Installer, DeBloater, and the Library, all walked through.
 
