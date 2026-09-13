@@ -1,8 +1,6 @@
 # On2it WinFixIT USB
 
-A self-contained Windows Compatibility Checker, Installer, DeBloater, and Advisor — build your own copy of the On2it-WinFixIT USB at home.
-
-WinFixIT has a:
+WinFixIT is a FREE USB Toolkit and App.  It has a: Windows 11 Compatibility Checker, BYPASS Installer and DeBloater.  With an Expandable Library of: Installable Apps, extensive, curated Reference Material, Utilities and Software Tools.  Build your own FREE copy of the On2it-WinFixIT USB at home.
 
 - **Windows 11 Compatibility Checker** — works even before Windows is installed
 - **BYPASS Installer** — installs Windows 11 on older hardware, bypassing Microsoft's TPM and Secure Boot requirements where necessary
