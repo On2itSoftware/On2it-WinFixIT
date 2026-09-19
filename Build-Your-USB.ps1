@@ -102,7 +102,6 @@ $SAFE_LIST = @(
     '1. Purpose of USB-INSTALL Partition.txt',
     'RUN - On2it-WinFixIT.bat',
     'RUN - Win11-DeBloater.bat',
-    'WinFixIT - User Manual.pdf',
     'Logs'
 )
 # Note: 'Scripts' is intentionally NOT in this list — hidden on the built USB,
@@ -849,7 +848,7 @@ Write-Host "  On a PC with NO OS installed:" -ForegroundColor White
 Write-Host "        Set your BIOS to boot from your USB and follow your nose." -ForegroundColor Gray
 Write-Host "        For FULL details see the User Manual." -ForegroundColor Gray
 Write-Host ""
-Write-Host "  A full user manual is included in the USB-INSTALL partition as 'WinFixIT - User Manual.pdf'." -ForegroundColor Gray
+Write-Host "  A full user manual is included in the On2it-WinFixIT partition as 'WinFixIT - User Manual.pdf'." -ForegroundColor Gray
 Write-Host "  Hopefully you won't need it, as we've designed WinFixIT to explain itself as you go along, "  -ForegroundColor Gray
 Write-Host "  but it's there if you do." -ForegroundColor Gray
 Write-Host ""
