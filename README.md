@@ -15,7 +15,7 @@ Connect with me on [LinkedIn](https://www.linkedin.com/in/BrianMcGuigan/).
 
 ## 🎬 Watch the Video Preview (8:30)
 
-[![Watch the WinFixIT Video Preview](Docs/WinFixIT%20-%20Video%20Preview%20Thumbnail.jpg)](https://youtu.be/LbuuGmadV8o)
+[![Watch the WinFixIT Video Preview](Docs/WinFixIT%20-%20Video%20Preview%20Thumbnail.jpg)](https://youtu.be/QLdRPbDRlnM)
 
 See it in action — the Compatibility Checker, BYPASS Installer, DeBloater, and the Library, all walked through.
 
@@ -25,7 +25,7 @@ See it in action — the Compatibility Checker, BYPASS Installer, DeBloater, and
 
 ## 📘 User Manual
 
-**[Read the User Manual](https://raw.githubusercontent.com/On2itSoftware/On2it-WinFixIT/master/USB-INSTALL/WinFixIT%20-%20User%20Manual.pdf)** — opens on its own in your browser's PDF viewer, full width.
+**[Read the User Manual](https://raw.githubusercontent.com/On2itSoftware/On2it-WinFixIT/master/On2it-WinFixIT/WinFixIT%20-%20User%20Manual.pdf)** — opens on its own in your browser's PDF viewer, full width.
 
 ## 📥 Illustrated Download and Quickstart Guide
 
