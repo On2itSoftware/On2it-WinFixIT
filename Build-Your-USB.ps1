@@ -87,7 +87,7 @@ $BootZipUrl          = 'https://pub-ef7ad4a1315f418ea10408fd91c554c7.r2.dev/USB-
 
 # SHA256 checksums of the zips above, verified after every download (fresh or
 # cached) to catch a truncated/corrupted download before it silently breaks the build.
-$PostInstallZipHash = '2E9E15D2EB9F7520B909679D1EDA2D1F149212C24C3920D32902FE1BAE9542CA'
+$PostInstallZipHash = '729D54E59E6915FDE8B40E00A2C24486D46220DE8E26585DE249CDD158D7801A'
 $ScriptsZipHash      = 'E92A4B68024CB9E2F4BFAC717F6F74824F1B2A44487CED1A80A5CFE367ED90AF'
 $BootZipHash         = '9BE793028A0061A9E3066D0F99E9D1191FDA5D3B9ADE40B4C833562A5964C045'
 
@@ -447,7 +447,7 @@ Write-Host "     - USB-INSTALL-Scripts.zip," -ForegroundColor White
 Write-Host "     - USB-INSTALL-Boot.zip." -ForegroundColor White
 
 Write-Host ""
-$postExpectedMB = 20024
+$postExpectedMB = 20036
 Write-Host "  Downloading On2it-WinFixIT.zip ($(Format-SizeMB $postExpectedMB), this will take a while)..." -ForegroundColor Cyan
 Confirm-ExistingDownload -Path $postZip -Label 'On2it-WinFixIT.zip'
 if (-not (Test-Path $postZip)) {

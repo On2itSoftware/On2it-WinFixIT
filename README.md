@@ -68,7 +68,7 @@ No technical experience needed — every step below is exactly what to click.
 
 ## License
 
-Free for personal, noncommercial use — build it, use it, modify it for yourself.  Reselling, rebranding, or otherwise using it commercially isn't permitted without permission from On2it Software Ltd.  Full terms: [LICENSE](LICENSE) (PolyForm Noncommercial License 1.0.0).
+Free and open source, under the GNU General Public License v3.0 (GPL-3.0) — use it, share it, modify it, even build on it commercially, as long as anything you distribute (including modified versions) stays licensed under GPL-3.0 too.  Full terms: [LICENSE](LICENSE).
 
 ## Support
 
