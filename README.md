@@ -44,7 +44,7 @@ No technical experience needed — every step below is exactly what to click.
    - You may also see a blue **"Windows protected your PC"** SmartScreen screen.  If so, click **More info**, then **Run anyway**.
 6. A User Account Control box ("do you want to allow this app...") will appear — click **Yes**.  This is expected; the script needs admin rights to partition the USB drive.
 7. A black window will open and ask you questions — which USB drive to use, and a final "Type YES to continue" confirmation before it erases the drive.  Read each prompt and answer it.
-8. Then it downloads and copies everything — this takes a while (~11.5GB total), especially on a slower internet connection.  Once downloaded, you can reuse that download to build additional USBs from the same PC without waiting again.
+8. Then it downloads and copies everything — this takes a while (~16GB total), especially on a slower internet connection.  Once downloaded, you can reuse that download to build additional USBs from the same PC without waiting again.
 9. When it says the build is complete, unplug and reinsert the USB drive (or just open it fresh in File Explorer).
    - **On a PC with Windows already installed**: double-click **`RUN - On2it-WinFixIT.bat`** to start.  This file exists on both partitions of the USB — either one works.
    - **On a PC with no OS installed at all**: set your BIOS to boot from the USB drive, and follow the on-screen prompts.
@@ -55,7 +55,7 @@ No technical experience needed — every step below is exactly what to click.
 - Windows 10/11
 - Administrator rights (requested automatically)
 - A USB drive, 32GB or larger, that you're OK with **completely erasing**
-- A stable internet connection for the initial download (~11.5GB)
+- A stable internet connection for the initial download (~16GB)
 
 **What the built USB supports:**
 - Compatibility Checker and Windows Installer work on any PC — even those without an OS.

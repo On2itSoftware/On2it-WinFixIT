@@ -92,7 +92,7 @@ $BootZipUrl          = 'https://pub-ef7ad4a1315f418ea10408fd91c554c7.r2.dev/USB-
 
 # SHA256 checksums of the zips above, verified after every download (fresh or
 # cached) to catch a truncated/corrupted download before it silently breaks the build.
-$PostInstallZipHash = '4875AA1EF3E3695A54EC22FA9EE16CB29332F83F0C28CB78931BC0FE6A4F9F27'
+$PostInstallZipHash = 'B66611016338DD5B3078B986D94C233C9EBA6F25943B45755B51BB71CC0D19EB'
 $ScriptsZipHash      = 'E92A4B68024CB9E2F4BFAC717F6F74824F1B2A44487CED1A80A5CFE367ED90AF'
 $BootZipHash         = '9BE793028A0061A9E3066D0F99E9D1191FDA5D3B9ADE40B4C833562A5964C045'
 
@@ -453,28 +453,33 @@ Write-Host "     - USB-INSTALL-Scripts.zip," -ForegroundColor White
 Write-Host "     - USB-INSTALL-Boot.zip." -ForegroundColor White
 
 Write-Host ""
-# TODO (Brian): still the old ~20 GB / ISOs-included value as of 24-Sep-26.
-# Fixes itself, though — re-run "1. On2it-WinFixIT" in UPLOAD - WinFixIT
-# Content to Cloudflare R2.ps1 (now excludes the two ISOs from staging) and
-# it auto-updates this AND $PostInstallZipHash above from the real rebuilt
-# zip, then auto-publishes the change here to GitHub. Nothing to hand-edit.
-$postExpectedMB = 20036
+# Rebuilt 24-Sep-26 without the two Windows ISOs (see
+# project_github_vs_inhouse_iso_policy memory) - down from 20036 MB. A stale
+# copy of both ISOs sitting in the R2 staging folder from before that
+# exclusion existed meant the FIRST rebuild attempt didn't actually shrink
+# (robocopy /XF hides a filename from /MIR's delete-pass too, not just its
+# copy-pass) - fixed by explicitly removing them from staging, confirmed by
+# the real zip dropping from 8996 to 8994 files and ~19.57 GB to ~10.6 GB.
+$postExpectedMB = 10858
 Write-Host "  Downloading On2it-WinFixIT.zip ($(Format-SizeMB $postExpectedMB), this will take a while)..." -ForegroundColor Cyan
 Confirm-ExistingDownload -Path $postZip -Label 'On2it-WinFixIT.zip'
 if (-not (Test-Path $postZip)) {
     # Content list grows with the zip - below 12 GB it's still just ISOs + the
     # menu system, but past that point Applications/AI Tools/Documentation have
     # been added, so the short description would undersell what's actually there.
-    if ($postExpectedMB -lt 12288) {
-        Write-Host "  On2it-WinFixIT Partition - $(Format-SizeMB $postExpectedMB) contains:" -ForegroundColor DarkGray
-        Write-Host "     Our LIBRARY Menu files" -ForegroundColor DarkGray
-    } else {
-        Write-Host "  On2it-WinFixIT Partition - $(Format-SizeMB $postExpectedMB) contains: "  -ForegroundColor DarkGray
-        Write-Host "     Multiple Application & Utility Apps, "  -ForegroundColor DarkGray
-        Write-Host "     AI Tools, "  -ForegroundColor DarkGray
-        Write-Host "     Documentation & Reference Library + "  -ForegroundColor DarkGray
-        Write-Host "     + Our LIBRARY Menu files" -ForegroundColor DarkGray
-    }
+    # No longer a size-threshold branch here (was: "below 12 GB it's still
+    # just ISOs + the menu system"). That stopped meaning anything 24-Sep-26,
+    # once the two ISOs (~9.9 GB) came OUT of this zip entirely and get built
+    # separately instead - the zip dropped under the old 12 GB threshold
+    # purely from losing the ISOs, not from losing Applications/AI
+    # Tools/Documentation, which are still genuinely in here (confirmed
+    # against PRODUCTION's actual Install\ folder the same day). Always
+    # showing the fuller description is now simply accurate.
+    Write-Host "  On2it-WinFixIT Partition - $(Format-SizeMB $postExpectedMB) contains: "  -ForegroundColor DarkGray
+    Write-Host "     Multiple Application & Utility Apps, "  -ForegroundColor DarkGray
+    Write-Host "     AI Tools, "  -ForegroundColor DarkGray
+    Write-Host "     Documentation & Reference Library + "  -ForegroundColor DarkGray
+    Write-Host "     + Our LIBRARY Menu files" -ForegroundColor DarkGray
     Write-Host "  (The two Windows ISOs are built separately, straight from Microsoft — see below.)" -ForegroundColor DarkGray
     Write-Host "  Feel free to leave it running in the background.  An estimated time remaining will appear shortly." -ForegroundColor DarkGray
     Invoke-DownloadWithDots -Uri $PostInstallZipUrl -OutFile $postZip -ExpectedTotalMB $postExpectedMB
