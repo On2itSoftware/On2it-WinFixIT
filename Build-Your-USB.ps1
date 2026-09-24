@@ -2,9 +2,11 @@
    ==================
        Purpose: Public build script. Downloads the large On2it-WinFixIT content,
                 the WinPE boot files, and the (private, unlisted) Scripts bundle
-                from Cloudflare R2, then partitions a USB drive and copies
-                USB-INSTALL (bundled in this repo) + the downloaded content onto it.
-                
+                from Cloudflare R2, builds the two Windows installation ISOs
+                fresh from Microsoft's own servers, then partitions a USB
+                drive and copies USB-INSTALL (bundled in this repo) + the
+                downloaded/built content onto it.
+
                 This is the public counterpart to the internal
                 Clone-WinFixIT-USB.ps1 build script used in-house — same
                 partitioning/copy logic, but pulls the large content from public
@@ -21,29 +23,32 @@
                                                         EFI\, Boot\, sources\boot.wim)
                     Scripts bundle                 → P1\Scripts (hidden after copy)
 
+                Source (built locally from Microsoft, see Tools\Build-WindowsISOs.ps1):
+                    FULL Install.iso               → P2\Install\Windows (untouched
+                                                        official Microsoft ISO)
+                    BYPASS Install.iso             → P2\Install\Windows (same ISO,
+                                                        TPM/Secure Boot check removed)
+                    Neither ISO is downloaded from Cloudflare or shipped in this
+                    repo — Microsoft doesn't permit redistributing Windows install
+                    media, so this build gets its own copy straight from Microsoft
+                    every time instead. See project_github_vs_inhouse_iso_policy
+                    memory for why this differs from the in-house build.
+
    Designed by: Brian McGuigan
             of: On2it Software Ltd
        Code by: Claude
-       Version: 6 (reworded the "found a previous download" prompt - R now
-                means Re-use, D means Download again, with a leading
-                "Downloading X..." header before the prompt so it's clear
-                which file's being asked about; download-progress cursor
-                now lands on a fresh line with
-                two RELATIVE newlines instead of absolute SetCursorPosition
-                arithmetic - was gluing "Download complete." straight onto
-                the end of the still-visible status line with no break;
-                USB disk selection now waits and asks for the right
-                capacity instead of throwing if none is plugged in / big
-                enough; extraction cache now keyed to the zip's own hash
-                instead of just "did extraction happen before", fixing a
-                stale-content bug that under-reported the USB size needed;
-                dropped -NoExit on the elevated relaunch - was leaving the
-                window open at a bare prompt even after "Press Enter to
-                close" had been answered, same fix already confirmed for
-                CREATE - WinFixIT USB.ps1; fixed a pre-existing text-
-                encoding corruption throughout the file's own comments)
-         Dated: 24-Aug-26
-        Status: Reviewed and tested against a live R2 bucket; boot files added
+       Version: 7 (Windows ISOs no longer downloaded from Cloudflare or
+                shipped in the public content zip — both FULL Install.iso and
+                BYPASS Install.iso are now built locally from a live Fido.ps1
+                fetch of Microsoft's own official ISO, with the bypass version
+                built by stripping sources\appraiserres.dll and repackaging
+                via IMAPI2; see Tools\Build-WindowsISOs.ps1. Removes ~11.5 GB
+                of third-party-sourced ISO from the public download and the
+                redistribution risk that came with it)
+         Dated: 24-Sep-26
+        Status: New ISO-build step not yet proven end-to-end on real hardware
+                — see Tools\Build-WindowsISOs.ps1 Status note. Everything else
+                reviewed and tested against a live R2 bucket; boot files added
                 after the original version shipped without them.
 #>
 
@@ -87,12 +92,13 @@ $BootZipUrl          = 'https://pub-ef7ad4a1315f418ea10408fd91c554c7.r2.dev/USB-
 
 # SHA256 checksums of the zips above, verified after every download (fresh or
 # cached) to catch a truncated/corrupted download before it silently breaks the build.
-$PostInstallZipHash = '729D54E59E6915FDE8B40E00A2C24486D46220DE8E26585DE249CDD158D7801A'
+$PostInstallZipHash = '4875AA1EF3E3695A54EC22FA9EE16CB29332F83F0C28CB78931BC0FE6A4F9F27'
 $ScriptsZipHash      = 'E92A4B68024CB9E2F4BFAC717F6F74824F1B2A44487CED1A80A5CFE367ED90AF'
 $BootZipHash         = '9BE793028A0061A9E3066D0F99E9D1191FDA5D3B9ADE40B4C833562A5964C045'
 
 $ScriptRoot   = $PSScriptRoot
 $SRC_INSTALL  = Join-Path $ScriptRoot 'USB-INSTALL'
+$FidoPath     = Join-Path $ScriptRoot 'Tools\Fido.ps1'   # vendored copy — see Tools\Build-WindowsISOs.ps1
 
 $P1_SIZE_MB      = 1024   # USB-INSTALL - FAT32 - 1 GB
 $P3_SIZE_MB      = 1024   # Reserved (Courses)  - NTFS - 1 GB, structure only, never populated publicly
@@ -447,6 +453,11 @@ Write-Host "     - USB-INSTALL-Scripts.zip," -ForegroundColor White
 Write-Host "     - USB-INSTALL-Boot.zip." -ForegroundColor White
 
 Write-Host ""
+# TODO (Brian): still the old ~20 GB / ISOs-included value as of 24-Sep-26.
+# Fixes itself, though — re-run "1. On2it-WinFixIT" in UPLOAD - WinFixIT
+# Content to Cloudflare R2.ps1 (now excludes the two ISOs from staging) and
+# it auto-updates this AND $PostInstallZipHash above from the real rebuilt
+# zip, then auto-publishes the change here to GitHub. Nothing to hand-edit.
 $postExpectedMB = 20036
 Write-Host "  Downloading On2it-WinFixIT.zip ($(Format-SizeMB $postExpectedMB), this will take a while)..." -ForegroundColor Cyan
 Confirm-ExistingDownload -Path $postZip -Label 'On2it-WinFixIT.zip'
@@ -456,16 +467,15 @@ if (-not (Test-Path $postZip)) {
     # been added, so the short description would undersell what's actually there.
     if ($postExpectedMB -lt 12288) {
         Write-Host "  On2it-WinFixIT Partition - $(Format-SizeMB $postExpectedMB) contains:" -ForegroundColor DarkGray
-        Write-Host "     TWO Windows ISOs" -ForegroundColor DarkGray
-        Write-Host "     + Our LIBRARY Menu files" -ForegroundColor DarkGray
+        Write-Host "     Our LIBRARY Menu files" -ForegroundColor DarkGray
     } else {
         Write-Host "  On2it-WinFixIT Partition - $(Format-SizeMB $postExpectedMB) contains: "  -ForegroundColor DarkGray
-        Write-Host "     TWO Windows ISOs, "  -ForegroundColor DarkGray
         Write-Host "     Multiple Application & Utility Apps, "  -ForegroundColor DarkGray
         Write-Host "     AI Tools, "  -ForegroundColor DarkGray
         Write-Host "     Documentation & Reference Library + "  -ForegroundColor DarkGray
         Write-Host "     + Our LIBRARY Menu files" -ForegroundColor DarkGray
     }
+    Write-Host "  (The two Windows ISOs are built separately, straight from Microsoft — see below.)" -ForegroundColor DarkGray
     Write-Host "  Feel free to leave it running in the background.  An estimated time remaining will appear shortly." -ForegroundColor DarkGray
     Invoke-DownloadWithDots -Uri $PostInstallZipUrl -OutFile $postZip -ExpectedTotalMB $postExpectedMB
     Write-Host "  Download complete." -ForegroundColor Gray
@@ -505,6 +515,26 @@ Expand-VerifiedArchive -ZipPath $bootZip -ZipHash $bootZipHash -DestPath $bootEx
 
 $SRC_POST = $postExtract
 
+Write-Host ""
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 2b. Build the two Windows installation ISOs, straight from Microsoft
+# ─────────────────────────────────────────────────────────────────────────────
+# Neither ISO is downloaded from Cloudflare or shipped in this repo —
+# Microsoft doesn't permit redistributing Windows install media. Both are
+# built fresh here instead: FULL Install.iso is the untouched official ISO;
+# BYPASS Install.iso is the same ISO with its TPM/Secure Boot/RAM check
+# removed. See Tools\Build-WindowsISOs.ps1 for the full method and its
+# current test status.
+. (Join-Path $ScriptRoot 'Tools\Robocopy-Common.ps1')
+. (Join-Path $ScriptRoot 'Tools\Build-WindowsISOs.ps1')
+
+Write-Host "  Building Windows installation ISOs (FULL and BYPASS) from Microsoft..." -ForegroundColor White
+Write-Host "  (These are never downloaded from us or shipped in this repo — Microsoft doesn't" -ForegroundColor DarkGray
+Write-Host "  allow redistributing Windows media, so your own copy is built fresh here instead.)" -ForegroundColor DarkGray
+$isoDestFolder = Join-Path $SRC_POST 'Install\Windows'
+$isoWorkFolder = Join-Path $tempRoot 'ISO-Build'
+New-WindowsInstallIsos -DestFolder $isoDestFolder -WorkFolder $isoWorkFolder -FidoPath $FidoPath
 Write-Host ""
 
 # ─────────────────────────────────────────────────────────────────────────────
