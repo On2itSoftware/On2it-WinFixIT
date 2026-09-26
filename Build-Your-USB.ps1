@@ -98,8 +98,8 @@ $BootZipUrl          = 'https://pub-ef7ad4a1315f418ea10408fd91c554c7.r2.dev/USB-
 
 # SHA256 checksums of the zips above, verified after every download (fresh or
 # cached) to catch a truncated/corrupted download before it silently breaks the build.
-$PostInstallZipHash = 'FE2BE997F001FADCC0F66431CC70D418D9E46263994901C08F514F1C59D9A33C'
-$ScriptsZipHash      = '058C196240937B4E502D43BF39251ED484C2C0B2F69A4928FB792794A0914736'
+$PostInstallZipHash = '097A67DAC3A0DBFFFB0C5201AFBE52C8B3312B5409294B42CFB4F7AAB7839325'
+$ScriptsZipHash      = '6EB693B643830D8389E964A5065B75EB8E3BE8BAFCE47B1F6EA365B7D74AD7F3'
 $BootZipHash         = '9BE793028A0061A9E3066D0F99E9D1191FDA5D3B9ADE40B4C833562A5964C045'
 
 $ScriptRoot   = $PSScriptRoot
@@ -503,7 +503,7 @@ Set-DownloadCompleteFlag -Path $postZip
 Expand-VerifiedArchive -ZipPath $postZip -ZipHash $postZipHash -DestPath $postExtract -Label 'On2it-WinFixIT content'
 
 Write-Host ""
-$scriptsExpectedMB = 122
+$scriptsExpectedMB = 1
 Write-Host "  Downloading USB-INSTALL-Scripts.zip ($(Format-SizeMB $scriptsExpectedMB))..." -ForegroundColor Cyan
 Confirm-ExistingDownload -Path $scriptsZip -Label 'USB-INSTALL-Scripts.zip'
 if (-not (Test-Path $scriptsZip)) {
