@@ -46,12 +46,19 @@
    Designed by: Brian McGuigan
             of: On2it Software Ltd
        Code by: Claude
-       Version: 1
-         Dated: 24-Sep-26
-        Status: NEW -- not yet proven end-to-end. Needs a live test that
-                Windows Setup actually accepts a BYPASS Install.iso rebuilt
-                this way (IMAPI2 + appraiserres.dll strip) on real unsupported
-                hardware before this replaces the pre-built ISOs for real.
+       Version: 2 (New-WindowsInstallIsos now writes ISO Descriptions.txt
+                itself, every run - fresh build or cached re-use - describing
+                exactly what was bypassed and how. Content settled with
+                Brian, 2026-09-25: RAM/storage deliberately not listed as
+                bypassed, since WinFixIT's own Compatibility Checker already
+                covers that ground and there's no value bypassing a real
+                hardware shortfall anyway)
+         Dated: 25-Sep-26
+        Status: ISO-build mechanism not yet proven end-to-end. Needs a live
+                test that Windows Setup actually accepts a BYPASS Install.iso
+                rebuilt this way (IMAPI2 + appraiserres.dll strip) on real
+                unsupported hardware before this replaces the pre-built ISOs
+                for real.
 #>
 
 # The community-standard way to copy an IMAPI2 result image to a .iso file --
@@ -102,6 +109,17 @@ function New-DataIso {
 
     $fsi = New-Object -ComObject IMAPI2FS.MsftFileSystemImage
     $fsi.FileSystemsToCreate = 4   # UDF only
+    $fsi.UDFRevision = 0x0250      # what real Windows installation media itself uses
+    # FreeMediaBlocks is the ACTUAL fix for the size failure below, not
+    # UDFRevision (tried and confirmed insufficient on its own, 2026-09-25,
+    # Brian live test). IMAPI2 defaults this to 332,800 blocks -- roughly a
+    # standard 650 MB CD's capacity -- and enforces it regardless of which
+    # filesystem/revision is selected, failing with "Adding 'boot.wim' would
+    # result in a result image having a size larger than the current
+    # configured limit" on a genuine ~8 GB Windows 11 image (my own earlier
+    # test only used a few bytes of dummy content, so it never exercised
+    # this). 0 means unlimited.
+    $fsi.FreeMediaBlocks = 0
     $fsi.VolumeName = $VolumeLabel
     $fsi.Root.AddTree($SourceFolder, $false) | Out-Null
 
@@ -163,6 +181,13 @@ function New-BypassInstallIso {
     # file is present and readable, not that it's non-empty.
     $appraiser = Join-Path $extractFolder 'sources\appraiserres.dll'
     if (Test-Path -LiteralPath $appraiser) {
+        # Confirmed for real, 2026-09-25 (Brian, live test): failed here with
+        # "Access to the path '...appraiserres.dll' is denied." ISO9660/UDF
+        # media is always read-only, and the robocopy pass above (/COPY:DAT)
+        # deliberately carries file Attributes across too - so the extracted
+        # copy on real disk inherits the ReadOnly flag from the mounted ISO,
+        # even though it's sitting on a perfectly writable NTFS folder.
+        (Get-Item -LiteralPath $appraiser -Force).IsReadOnly = $false
         Set-Content -LiteralPath $appraiser -Value $null -NoNewline
     } else {
         Write-Host "    WARNING: sources\appraiserres.dll not found in the official ISO -- Microsoft may have" -ForegroundColor Yellow
@@ -192,11 +217,19 @@ function New-WindowsInstallIsos {
     New-Item -ItemType Directory -Path $WorkFolder -Force | Out-Null
 
     $fullIsoPath = Join-Path $DestFolder 'FULL Install.iso'
+    # Captured whether fresh or cached, from the URL if a fresh fetch happened
+    # this run, or by re-deriving from the existing file's name pattern isn't
+    # reliable enough to bother with - so a cached re-run's description below
+    # just says "a prior run on this PC" instead of repeating the exact
+    # edition, which is a fine trade for not re-fetching a URL that doesn't
+    # change what's already sitting on disk.
+    $sourceUrl = $null
+
     if (-not (Test-Path -LiteralPath $fullIsoPath)) {
-        $url = Get-OfficialWindows11IsoUrl -FidoPath $FidoPath
+        $sourceUrl = Get-OfficialWindows11IsoUrl -FidoPath $FidoPath
         Write-Host "  Downloading the official Windows 11 ISO from Microsoft..." -ForegroundColor Cyan
         Write-Host "  (This becomes FULL Install.iso, completely untouched -- straight from Microsoft.)" -ForegroundColor DarkGray
-        Invoke-DownloadWithDots -Uri $url -OutFile $fullIsoPath -ExpectedTotalMB 6144
+        Invoke-DownloadWithDots -Uri $sourceUrl -OutFile $fullIsoPath -ExpectedTotalMB 6144
         Write-Host "  Download complete." -ForegroundColor Gray
         Write-Host ""
     } else {
@@ -211,4 +244,62 @@ function New-WindowsInstallIsos {
     } else {
         Write-Host "  BYPASS Install.iso already built from a previous run -- re-using it." -ForegroundColor White
     }
+
+    Write-AutoBuiltIsoDescriptions -DestFolder $DestFolder -SourceUrl $sourceUrl
+}
+
+# Written every run (fresh build or cached re-use), so ISO Descriptions.txt is
+# never left stale or missing. Content settled with Brian, 2026-09-25: RAM and
+# storage are deliberately NOT listed as bypassed - appraiserres.dll removal
+# technically disables Setup's check of those too, but WinFixIT's own
+# Compatibility Checker already covers that ground separately, and there's no
+# value in bypassing a real hardware shortfall anyway (the install just fails,
+# or the machine is unusable, regardless of what Setup itself checked).
+function Write-AutoBuiltIsoDescriptions {
+    param(
+        [Parameter(Mandatory)][string]$DestFolder,
+        [string]$SourceUrl
+    )
+    $sourceLine = if ($SourceUrl) {
+        "Fetched fresh from Microsoft's own servers on $(Get-Date -Format 'dd-MMM-yyyy'), via Fido"
+    } else {
+        "Built on this PC in a prior run - see the ISO files' own dates for when"
+    }
+    $descPath = Join-Path $DestFolder 'ISO Descriptions.txt'
+    Set-Content -LiteralPath $descPath -Encoding UTF8 -Value @(
+        "FULL Install.iso"
+        "-----------------"
+        "The official Microsoft Windows 11 ISO, completely unmodified."
+        "$sourceLine (https://github.com/pbatard/Fido) - the same official-servers"
+        "mechanism Rufus itself uses to fetch ISOs, not a mirror or a scrape."
+        ""
+        "BYPASS Install.iso"
+        "-------------------"
+        "The same official ISO, with one file removed: sources\appraiserres.dll -"
+        "the file Windows Setup calls to enforce its hardware eligibility checks."
+        "This is the same mechanism Rufus's own 'Extended Windows 11 Installation'"
+        "option uses, not a registry-key workaround applied at install time."
+        ""
+        "Bypasses:"
+        "  - TPM 2.0"
+        "  - Secure Boot"
+        "  - Supported-CPU family/model restriction"
+        ""
+        "Does NOT bypass, and doesn't need to:"
+        "  - Minimum RAM (4GB) / storage (64GB) - WinFixIT's own Compatibility"
+        "    Checker already checks these separately, before you ever reach this"
+        "    choice. Bypassing a real hardware shortfall wouldn't help anyway -"
+        "    the install would still fail, or the machine would be unusable."
+        "  - The Microsoft-account/internet-connection requirement during setup -"
+        "    WinFixIT's DeBloater already lets you disable or remove that"
+        "    requirement after install."
+        ""
+        "Neither ISO is downloaded from On2it Software or shipped in this repo -"
+        "Microsoft doesn't permit redistributing Windows install media, so your"
+        "own copy is built fresh, straight from Microsoft, every time you run"
+        "Build-Your-USB.ps1."
+        ""
+        "You'll still need your own valid Windows license/product key to install"
+        "and activate either one - neither ISO includes or bypasses that."
+    )
 }

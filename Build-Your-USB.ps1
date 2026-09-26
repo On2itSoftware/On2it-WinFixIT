@@ -2,9 +2,11 @@
    ==================
        Purpose: Public build script. Downloads the large On2it-WinFixIT content,
                 the WinPE boot files, and the (private, unlisted) Scripts bundle
-                from Cloudflare R2, builds the two Windows installation ISOs
-                fresh from Microsoft's own servers, then partitions a USB
-                drive and copies USB-INSTALL (bundled in this repo) + the
+                from Cloudflare R2, optionally builds the two Windows
+                installation ISOs fresh from Microsoft's own servers (the user
+                is asked - Compatibility Checker, DeBloater and the Library
+                all work without them), then partitions a USB drive and
+                copies USB-INSTALL (bundled in this repo) + the
                 downloaded/built content onto it.
 
                 This is the public counterpart to the internal
@@ -23,29 +25,33 @@
                                                         EFI\, Boot\, sources\boot.wim)
                     Scripts bundle                 → P1\Scripts (hidden after copy)
 
-                Source (built locally from Microsoft, see Tools\Build-WindowsISOs.ps1):
+                Source (optional - built locally from Microsoft, or user-supplied;
+                        see Tools\Build-WindowsISOs.ps1):
                     FULL Install.iso               → P2\Install\Windows (untouched
                                                         official Microsoft ISO)
                     BYPASS Install.iso             → P2\Install\Windows (same ISO,
-                                                        TPM/Secure Boot check removed)
+                                                        TPM/Secure Boot/CPU check removed)
                     Neither ISO is downloaded from Cloudflare or shipped in this
                     repo — Microsoft doesn't permit redistributing Windows install
                     media, so this build gets its own copy straight from Microsoft
-                    every time instead. See project_github_vs_inhouse_iso_policy
-                    memory for why this differs from the in-house build.
+                    every time instead, if the user wants Windows install media at
+                    all. See project_github_vs_inhouse_iso_policy memory for why
+                    this differs from the in-house build.
 
    Designed by: Brian McGuigan
             of: On2it Software Ltd
        Code by: Claude
-       Version: 7 (Windows ISOs no longer downloaded from Cloudflare or
-                shipped in the public content zip — both FULL Install.iso and
-                BYPASS Install.iso are now built locally from a live Fido.ps1
-                fetch of Microsoft's own official ISO, with the bypass version
-                built by stripping sources\appraiserres.dll and repackaging
-                via IMAPI2; see Tools\Build-WindowsISOs.ps1. Removes ~11.5 GB
-                of third-party-sourced ISO from the public download and the
-                redistribution risk that came with it)
-         Dated: 24-Sep-26
+       Version: 8 (Windows install media is now a real up-front choice, not
+                something every build does regardless - Brian, 2026-09-25:
+                Compatibility Checker/DeBloater/Library all work without it,
+                so users who don't want a Windows install from this USB at
+                all can skip the ~4.7 GB Microsoft download entirely. If
+                included, a further choice between building automatically
+                (as V7 always did) or supplying your own ISOs. ISO
+                Descriptions.txt is now written dynamically every run,
+                accurately describing whichever path was actually taken -
+                see Tools\Build-WindowsISOs.ps1 V2)
+         Dated: 25-Sep-26
         Status: New ISO-build step not yet proven end-to-end on real hardware
                 — see Tools\Build-WindowsISOs.ps1 Status note. Everything else
                 reviewed and tested against a live R2 bucket; boot files added
@@ -92,8 +98,8 @@ $BootZipUrl          = 'https://pub-ef7ad4a1315f418ea10408fd91c554c7.r2.dev/USB-
 
 # SHA256 checksums of the zips above, verified after every download (fresh or
 # cached) to catch a truncated/corrupted download before it silently breaks the build.
-$PostInstallZipHash = 'B66611016338DD5B3078B986D94C233C9EBA6F25943B45755B51BB71CC0D19EB'
-$ScriptsZipHash      = 'E92A4B68024CB9E2F4BFAC717F6F74824F1B2A44487CED1A80A5CFE367ED90AF'
+$PostInstallZipHash = 'FE2BE997F001FADCC0F66431CC70D418D9E46263994901C08F514F1C59D9A33C'
+$ScriptsZipHash      = '058C196240937B4E502D43BF39251ED484C2C0B2F69A4928FB792794A0914736'
 $BootZipHash         = '9BE793028A0061A9E3066D0F99E9D1191FDA5D3B9ADE40B4C833562A5964C045'
 
 $ScriptRoot   = $PSScriptRoot
@@ -269,6 +275,14 @@ function Invoke-DownloadWithDots {
 
             $elapsedMin   = ((Get-Date) - $startTime).TotalMinutes
             $rateMBmin    = if ($elapsedMin -gt 0) { $downloadedMB / $elapsedMin } else { 0 }
+            # Same cumulative-average-since-start basis as $rateMBmin above (not
+            # a jumpy last-minute-only rate) -- see project_robocopy_progress_reporting
+            # memory for why that's the deliberate choice elsewhere in this codebase.
+            # MB here is MiB (PowerShell's 1MB = 1,048,576) but Mbps is conventionally
+            # decimal megabits/sec (matches $AssumedUploadMbps in the R2 upload
+            # script, sourced from a real Speedtest result) -- hence *1MB*8/1000000
+            # rather than a binary-only conversion throughout.
+            $rateMbps     = $rateMBmin * 1MB * 8 / 60 / 1000000
             # ExpectedTotalMB is a rough hand-set estimate, not the real
             # Content-Length -- if the actual file is a bit bigger, show
             # "almost done" rather than silently dropping the ETA text.
@@ -277,7 +291,8 @@ function Invoke-DownloadWithDots {
             } elseif ($rateMBmin -gt 0) {
                 " (about $([math]::Ceiling(($ExpectedTotalMB - $downloadedMB) / $rateMBmin)) min remaining)"
             } else { "" }
-            $statusLine = "  {0:N0} MB downloaded so far{1}" -f $downloadedMB, $etaText
+            $rateText   = if ($rateMbps -gt 0) { " at $([math]::Round($rateMbps, 0)) Mbps" } else { "" }
+            $statusLine = "  {0:N0} MB downloaded so far{1}{2}" -f $downloadedMB, $rateText, $etaText
 
             if ($canRedraw) {
                 try {
@@ -460,13 +475,10 @@ Write-Host ""
 # (robocopy /XF hides a filename from /MIR's delete-pass too, not just its
 # copy-pass) - fixed by explicitly removing them from staging, confirmed by
 # the real zip dropping from 8996 to 8994 files and ~19.57 GB to ~10.6 GB.
-$postExpectedMB = 10858
+$postExpectedMB = 1209
 Write-Host "  Downloading On2it-WinFixIT.zip ($(Format-SizeMB $postExpectedMB), this will take a while)..." -ForegroundColor Cyan
 Confirm-ExistingDownload -Path $postZip -Label 'On2it-WinFixIT.zip'
 if (-not (Test-Path $postZip)) {
-    # Content list grows with the zip - below 12 GB it's still just ISOs + the
-    # menu system, but past that point Applications/AI Tools/Documentation have
-    # been added, so the short description would undersell what's actually there.
     # No longer a size-threshold branch here (was: "below 12 GB it's still
     # just ISOs + the menu system"). That stopped meaning anything 24-Sep-26,
     # once the two ISOs (~9.9 GB) came OUT of this zip entirely and get built
@@ -491,7 +503,7 @@ Set-DownloadCompleteFlag -Path $postZip
 Expand-VerifiedArchive -ZipPath $postZip -ZipHash $postZipHash -DestPath $postExtract -Label 'On2it-WinFixIT content'
 
 Write-Host ""
-$scriptsExpectedMB = 1
+$scriptsExpectedMB = 122
 Write-Host "  Downloading USB-INSTALL-Scripts.zip ($(Format-SizeMB $scriptsExpectedMB))..." -ForegroundColor Cyan
 Confirm-ExistingDownload -Path $scriptsZip -Label 'USB-INSTALL-Scripts.zip'
 if (-not (Test-Path $scriptsZip)) {
@@ -523,24 +535,106 @@ $SRC_POST = $postExtract
 Write-Host ""
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 2b. Build the two Windows installation ISOs, straight from Microsoft
+# 2b. Windows installation media - optional, and never shipped by us either way
 # ─────────────────────────────────────────────────────────────────────────────
-# Neither ISO is downloaded from Cloudflare or shipped in this repo —
-# Microsoft doesn't permit redistributing Windows install media. Both are
-# built fresh here instead: FULL Install.iso is the untouched official ISO;
-# BYPASS Install.iso is the same ISO with its TPM/Secure Boot/RAM check
-# removed. See Tools\Build-WindowsISOs.ps1 for the full method and its
-# current test status.
+# Compatibility Checker, DeBloater, and the Library all work with no Windows
+# install media at all - DeBloater specifically only ever runs once Windows 11
+# is already installed. Brian, 2026-09-25: not every user building this USB
+# wants a Windows install from it at all, so this is now a real up-front
+# choice rather than something every build pays the Microsoft download for
+# regardless. Whichever path is taken, ISO Descriptions.txt always ends up
+# accurately describing what's actually in Install\Windows - never left
+# stale, never describing something that didn't happen.
 . (Join-Path $ScriptRoot 'Tools\Robocopy-Common.ps1')
-. (Join-Path $ScriptRoot 'Tools\Build-WindowsISOs.ps1')
 
-Write-Host "  Building Windows installation ISOs (FULL and BYPASS) from Microsoft..." -ForegroundColor White
-Write-Host "  (These are never downloaded from us or shipped in this repo — Microsoft doesn't" -ForegroundColor DarkGray
-Write-Host "  allow redistributing Windows media, so your own copy is built fresh here instead.)" -ForegroundColor DarkGray
 $isoDestFolder = Join-Path $SRC_POST 'Install\Windows'
-$isoWorkFolder = Join-Path $tempRoot 'ISO-Build'
-New-WindowsInstallIsos -DestFolder $isoDestFolder -WorkFolder $isoWorkFolder -FidoPath $FidoPath
+New-Item -ItemType Directory -Path $isoDestFolder -Force | Out-Null
+$isoDescPath = Join-Path $isoDestFolder 'ISO Descriptions.txt'
+
+Write-Host "  Do you want to be able to install Windows 11 from this USB?" -ForegroundColor White
+Write-Host "  (Compatibility Checker, DeBloater and the Library all work either way.)" -ForegroundColor DarkGray
+Write-Host "  Include Windows install media? (Y/N): " -NoNewline -ForegroundColor Yellow
+$includeWindowsInstall = (Read-Host) -match '^[Yy]'
+$isoChoice = ''   # only ever set below when $includeWindowsInstall is true - initialized
+                  # here so the later summary text can check it unconditionally
 Write-Host ""
+
+if (-not $includeWindowsInstall) {
+    Write-Host "  Skipping Windows install media - Compatibility Checker, DeBloater, and the" -ForegroundColor Gray
+    Write-Host "  Library will still all work fully. Add your own FULL Install.iso /" -ForegroundColor Gray
+    Write-Host "  BYPASS Install.iso to Install\Windows later if you change your mind -" -ForegroundColor Gray
+    Write-Host "  no need to rebuild the USB." -ForegroundColor Gray
+    Set-Content -LiteralPath $isoDescPath -Encoding UTF8 -Value @(
+        "No Windows installation media is included on this USB."
+        ""
+        "You chose not to include it when this USB was built. Compatibility"
+        "Checker, DeBloater, and the Library all still work fully without it."
+        ""
+        "If you change your mind later, just add your own FULL Install.iso and"
+        "BYPASS Install.iso to this folder - no need to rebuild the USB."
+    )
+} else {
+    Write-Host "  There are two ways of doing this.  We can either:" -ForegroundColor White
+    Write-Host "     - Build 'FULL Install.iso' by downloading Microsoft's latest version" -ForegroundColor Gray
+    Write-Host "       of Windows 11, direct from Microsoft themselves.  " -ForegroundColor Gray
+    Write-Host "       These are never downloaded from us or shipped in this repo.  Microsoft doesn't " -ForegroundColor DarkGray
+    Write-Host "       allow redistributing Windows media, so your own copy is built afresh instead." -ForegroundColor DarkGray
+    Write-Host "     - Use it to create a 'BYPASS Install.iso', " -ForegroundColor Gray
+    Write-Host "       which bypasses Windows 11's TPM 2.0, Secure Boot, and supported-CPU checks " -ForegroundColor DarkGray
+    Write-Host "       by removing sources\appraiserres.dll.  This is the same mechanism Rufus's" -ForegroundColor DarkGray
+    Write-Host "       'Extended Windows 11 Installation' option uses.  RAM and storage are" -ForegroundColor DarkGray
+    Write-Host "       already checked separately by WinFixIT's own Compatibility Checker." -ForegroundColor DarkGray
+    Write-Host "       The Microsoft-account/internet-connection requirement during setup" -ForegroundColor DarkGray
+    Write-Host "       isn't bypassed here either, as WinFixIT's DeBloater already lets you" -ForegroundColor DarkGray
+    Write-Host "       disable or remove that requirement post-install." -ForegroundColor DarkGray
+    Write-Host "     - and an 'ISO Descriptions.txt' file, " -ForegroundColor Gray
+    Write-Host "       which will record how they were created, together with details of what was bypassed." -ForegroundColor DarkGray
+    Write-Host "  These will all be created in the" -NoNewline -ForegroundColor Gray
+    Write-Host " Install\Windows folder" -NoNewline -ForegroundColor White
+    Write-Host " of the" -NoNewline -ForegroundColor Gray
+    Write-Host " On2it-WinFixIT partition" -NoNewline -ForegroundColor White
+    Write-Host " of the USB" -ForegroundColor Gray
+  
+    Write-Host ""
+    Write-Host "  OR you can supply your own." -ForegroundColor White
+    Write-Host "  You MUST use the file and folder names above or WinFixIT will not find them." -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "  So, what do you want to do - Download the ISOs from Microsoft, or supply your own?" -ForegroundColor White
+    Write-Host "    D = Download from Microsoft (downloads ~4.7 GB)" -ForegroundColor White
+    Write-Host "    S = Supply your own:" -ForegroundColor White
+    Write-Host "          - FULL Install.iso," -ForegroundColor Gray
+    Write-Host "          - BYPASS Install.iso," -ForegroundColor Gray
+    Write-Host "          - ISO Descriptions.txt" -ForegroundColor Gray
+    Write-Host "        files in" -NoNewline -ForegroundColor Gray
+    Write-Host " On2it-WinFixIT\Install\Windows" -NoNewline -ForegroundColor White
+    Write-Host " on the USB" -ForegroundColor Gray
+    Write-Host "  Download/Supply? (D/S): " -NoNewline -ForegroundColor Yellow
+    $isoChoice = Read-Host   
+
+    if ($isoChoice -match '^[Ss]') {
+        # No auto-generated ISO Descriptions.txt here -- deliberately, Brian
+        # 2026-09-25: if the user builds their own ISOs their own way, only
+        # THEY know how, so only they can honestly describe what was actually
+        # bypassed and how. A generic auto-written file here would either be
+        # wrong or meaninglessly vague for whatever they actually did.
+        Write-Host "  Skipping Download - add your own FULL Install.iso," -ForegroundColor Gray
+        Write-Host "  BYPASS Install.iso, and ISO Descriptions.txt to:" -ForegroundColor Gray
+        Write-Host "  $isoDestFolder" -ForegroundColor Gray
+    } else {
+        # Neither ISO is downloaded from Cloudflare or shipped in this repo —
+        # Microsoft doesn't permit redistributing Windows install media. Both
+        # are built fresh here instead. See Tools\Build-WindowsISOs.ps1 for
+        # the full method (including exactly what BYPASS Install.iso bypasses
+        # and why) and its current test status.
+        . (Join-Path $ScriptRoot 'Tools\Build-WindowsISOs.ps1')
+        Write-Host "  Building Windows installation ISOs (FULL and BYPASS) from Microsoft..." -ForegroundColor White
+        Write-Host "  These are never downloaded from us or shipped in this repo — Microsoft doesn't" -ForegroundColor DarkGray
+        Write-Host "  allow redistributing Windows media, so your own copy is built afresh instead." -ForegroundColor DarkGray
+        $isoWorkFolder = Join-Path $tempRoot 'ISO-Build'
+        New-WindowsInstallIsos -DestFolder $isoDestFolder -WorkFolder $isoWorkFolder -FidoPath $FidoPath
+        Write-Host ""
+    }
+}
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 3. Check downloaded content sizes, then list and select a USB disk with
@@ -647,28 +741,31 @@ if ($tgtDisk.NumberOfPartitions -gt 0) {
     Write-Host ""
     Write-Host "  Disk $tgtDiskNum already has $($tgtDisk.NumberOfPartitions) partition(s) on it." -ForegroundColor White
 
-    $existingVolumes = Get-Partition -DiskNumber $tgtDiskNum -ErrorAction SilentlyContinue |
-        Get-Volume -ErrorAction SilentlyContinue |
-        Where-Object { $_.DriveLetter }
+    # Partition NAMES (volume labels), not a file listing -- Brian, 2026-09-25,
+    # after the file-listing version showed obscure entries like language
+    # folders (bg-bg, cs-cz...) from old Windows install media: "We SHOULD use
+    # Partition Names. Most users won't know file names." A label like
+    # "RECOVERY" or "On2it-WinFixIT" is something a user can actually
+    # recognise as theirs (or not); an internal file/folder name usually
+    # isn't. Reading FileSystemLabel via Get-Volume doesn't need a drive
+    # letter to be assigned either (unlike the old approach), so this also
+    # covers the 2026-07-17 gap noted above for a partition with no drive
+    # letter yet -- a strict improvement, not just a wording change.
+    $existingPartitions = Get-Partition -DiskNumber $tgtDiskNum -ErrorAction SilentlyContinue
+    $partitionLines = @(foreach ($part in $existingPartitions) {
+        $vol = $part | Get-Volume -ErrorAction SilentlyContinue
+        $label = if ($vol -and $vol.FileSystemLabel) { $vol.FileSystemLabel } else { '(no name)' }
+        $driveLetterText = if ($vol -and $vol.DriveLetter) { " ($($vol.DriveLetter):)" } else { '' }
+        "$label$driveLetterText"
+    })
 
-    $allItems = @()
-    foreach ($vol in $existingVolumes) {
-        $allItems += Get-ChildItem -LiteralPath "$($vol.DriveLetter):\" -Force -ErrorAction SilentlyContinue |
-            Select-Object -ExpandProperty Name
-    }
-
-    if ($allItems.Count -gt 0) {
-        $truncated    = $allItems.Count -gt 5
-        $foundContent = $allItems | Select-Object -First 5
-
-        Write-Host "  It contains:" -ForegroundColor White
-        for ($i = 0; $i -lt $foundContent.Count; $i++) {
-            $isLast = $i -eq ($foundContent.Count - 1)
-            $suffix = if ($isLast) { if ($truncated) { ', ...' } else { '' } } else { ',' }
-            Write-Host "          $($foundContent[$i])$suffix" -ForegroundColor White
+    if ($partitionLines.Count -gt 0) {
+        Write-Host "  Partition names on it:" -ForegroundColor White
+        foreach ($line in $partitionLines) {
+            Write-Host "          $line" -ForegroundColor White
         }
     } else {
-        Write-Host "  Its contents could not be previewed (no drive letter is currently assigned to check)." -ForegroundColor White
+        Write-Host "  Its partition names could not be previewed." -ForegroundColor White
     }
 
     Write-Host ""
@@ -775,12 +872,21 @@ Write-Host "              - Accepting our default Options, or" -ForegroundColor 
 Write-Host "              - Allowing you to choose your own - with FULL advice" -ForegroundColor Gray
 Write-Host "                on EVERY Option." -ForegroundColor Gray
 Write-Host ""
-Write-Host "  On2it-WinFixIT contains all the files for installing:" -ForegroundColor White
-Write-Host "      Windows 11:" -ForegroundColor White
-Write-Host "          $BulletChar BYPASS Install.iso - installs Windows 11, bypassing its" -ForegroundColor Gray
-Write-Host "            usual insistence on TPM, Secure Boot, and a UEFI BIOS." -ForegroundColor Gray
-Write-Host "          $BulletChar FULL Install.iso - installs Windows with FULL enhanced" -ForegroundColor Gray
-Write-Host "            security features." -ForegroundColor Gray
+Write-Host "  On2it-WinFixIT contains all the files for:" -ForegroundColor White
+if ($includeWindowsInstall -and $isoChoice -notmatch '^[Ss]') {
+    Write-Host "      Installing Windows 11:" -ForegroundColor White
+    Write-Host "          $BulletChar BYPASS Install.iso - installs Windows 11, bypassing its" -ForegroundColor Gray
+    Write-Host "            usual insistence on TPM, Secure Boot, and a UEFI BIOS." -ForegroundColor Gray
+    Write-Host "          $BulletChar FULL Install.iso - installs Windows with FULL enhanced" -ForegroundColor Gray
+    Write-Host "            security features." -ForegroundColor Gray
+} elseif ($includeWindowsInstall) {
+    Write-Host "      Installing Windows 11 - once you've added your own FULL Install.iso /" -ForegroundColor White
+    Write-Host "         BYPASS Install.iso to Install\Windows (see ISO Descriptions.txt there)." -ForegroundColor Gray
+} else {
+    Write-Host "      No Windows install media - you chose to skip it. Add your own" -ForegroundColor White
+    Write-Host "         FULL Install.iso / BYPASS Install.iso to Install\Windows any time -" -ForegroundColor Gray
+    Write-Host "         no need to rebuild the USB." -ForegroundColor Gray
+}
 Write-Host "      Applications like:" -ForegroundColor White
 Write-Host "          $BulletChar Office, Project, Visio - or anything else YOU add to" -ForegroundColor Gray
 Write-Host "            YOUR USB." -ForegroundColor Gray
