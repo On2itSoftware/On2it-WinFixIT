@@ -99,7 +99,7 @@ $BootZipUrl          = 'https://pub-ef7ad4a1315f418ea10408fd91c554c7.r2.dev/USB-
 # SHA256 checksums of the zips above, verified after every download (fresh or
 # cached) to catch a truncated/corrupted download before it silently breaks the build.
 $PostInstallZipHash = '097A67DAC3A0DBFFFB0C5201AFBE52C8B3312B5409294B42CFB4F7AAB7839325'
-$ScriptsZipHash      = '6EB693B643830D8389E964A5065B75EB8E3BE8BAFCE47B1F6EA365B7D74AD7F3'
+$ScriptsZipHash      = '3D5EB379764D2D4A94BA79315039C90843E15F4BC7F86B0A6469BAC49954B82F'
 $BootZipHash         = '9BE793028A0061A9E3066D0F99E9D1191FDA5D3B9ADE40B4C833562A5964C045'
 
 $ScriptRoot   = $PSScriptRoot
@@ -551,7 +551,7 @@ $isoDestFolder = Join-Path $SRC_POST 'Install\Windows'
 New-Item -ItemType Directory -Path $isoDestFolder -Force | Out-Null
 $isoDescPath = Join-Path $isoDestFolder 'ISO Descriptions.txt'
 
-Write-Host "  Do you want to be able to install Windows 11 from this USB?" -ForegroundColor White
+Write-Host "  Do you want to be able to install Windows 11 from this USB?" -ForegroundColor Cyan
 Write-Host "  (Compatibility Checker, DeBloater and the Library all work either way.)" -ForegroundColor DarkGray
 Write-Host "  Include Windows install media? (Y/N): " -NoNewline -ForegroundColor Yellow
 $includeWindowsInstall = (Read-Host) -match '^[Yy]'
@@ -574,7 +574,8 @@ if (-not $includeWindowsInstall) {
         "BYPASS Install.iso to this folder - no need to rebuild the USB."
     )
 } else {
-    Write-Host "  There are two ways of doing this.  We can either:" -ForegroundColor White
+    Write-Host "  We can either do it for you." -NoNewline -ForegroundColor White
+    Write-Host "  We will:" -ForegroundColor Gray
     Write-Host "     - Build 'FULL Install.iso' by downloading Microsoft's latest version" -ForegroundColor Gray
     Write-Host "       of Windows 11, direct from Microsoft themselves.  " -ForegroundColor Gray
     Write-Host "       These are never downloaded from us or shipped in this repo.  Microsoft doesn't " -ForegroundColor DarkGray
@@ -596,41 +597,44 @@ if (-not $includeWindowsInstall) {
     Write-Host " of the USB" -ForegroundColor Gray
   
     Write-Host ""
-    Write-Host "  OR you can supply your own." -ForegroundColor White
-    Write-Host "  You MUST use the file and folder names above or WinFixIT will not find them." -ForegroundColor DarkGray
+    Write-Host "  OR you can do it for yourself," -NoNewLine -ForegroundColor White
+    Write-Host " by either:" -ForegroundColor Gray
+    Write-Host "     - using an existing Windows.iso if you already have one, or" -ForegroundColor DarkGray
+    Write-Host "     - we will tell you how to use Microsoft's Media Creation Tool to create one. " -ForegroundColor DarkGray
+    Write-Host "       That way you can be assured it is 100% genuine and unmodified, direct from Microsoft themselves." -ForegroundColor DarkGray
+    Write-Host "  WinFixIT will still build 'BYPASS Install.iso' and 'ISO Descriptions.txt' from it for you." -ForegroundColor Gray
     Write-Host ""
-    Write-Host "  So, what do you want to do - Download the ISOs from Microsoft, or supply your own?" -ForegroundColor White
-    Write-Host "    D = Download from Microsoft (downloads ~4.7 GB)" -ForegroundColor White
-    Write-Host "    S = Supply your own:" -ForegroundColor White
-    Write-Host "          - FULL Install.iso," -ForegroundColor Gray
-    Write-Host "          - BYPASS Install.iso," -ForegroundColor Gray
-    Write-Host "          - ISO Descriptions.txt" -ForegroundColor Gray
-    Write-Host "        files in" -NoNewline -ForegroundColor Gray
-    Write-Host " On2it-WinFixIT\Install\Windows" -NoNewline -ForegroundColor White
-    Write-Host " on the USB" -ForegroundColor Gray
+    Write-Host "  So, what do you want to do?" -ForegroundColor White
+    Write-Host "    D = Download automatically from Microsoft " -NoNewline -ForegroundColor White
+    Write-Host " (downloads ~6.8 GB)" -ForegroundColor DarkGray
+    Write-Host "    S = Supply a 'FULL Install.iso' yourself." -ForegroundColor White
     Write-Host "  Download/Supply? (D/S): " -NoNewline -ForegroundColor Yellow
-    $isoChoice = Read-Host   
+    $isoChoice = Read-Host
+    Write-Host ""
+    
+
+    . (Join-Path $ScriptRoot 'Tools\Build-WindowsISOs.ps1')
+    $isoWorkFolder = Join-Path $tempRoot 'ISO-Build'
 
     if ($isoChoice -match '^[Ss]') {
-        # No auto-generated ISO Descriptions.txt here -- deliberately, Brian
-        # 2026-09-25: if the user builds their own ISOs their own way, only
-        # THEY know how, so only they can honestly describe what was actually
-        # bypassed and how. A generic auto-written file here would either be
-        # wrong or meaninglessly vague for whatever they actually did.
-        Write-Host "  Skipping Download - add your own FULL Install.iso," -ForegroundColor Gray
-        Write-Host "  BYPASS Install.iso, and ISO Descriptions.txt to:" -ForegroundColor Gray
-        Write-Host "  $isoDestFolder" -ForegroundColor Gray
+        # Just hands off to New-WindowsInstallIsos's own -SkipAutomatic path -
+        # the MCT walkthrough, the pause, the check, and the graceful
+        # give-up-without-aborting-the-build fallback all live there now
+        # (moved 2026-09-26, Brian: "I should not be necessary to re-run the
+        # script" - the automatic ('D') path falls back to this exact same
+        # walkthrough inline on failure too, so there's one copy instead of
+        # two that could drift out of sync).
+        New-WindowsInstallIsos -DestFolder $isoDestFolder -WorkFolder $isoWorkFolder -FidoPath $FidoPath -SkipAutomatic
+        Write-Host ""
     } else {
         # Neither ISO is downloaded from Cloudflare or shipped in this repo —
         # Microsoft doesn't permit redistributing Windows install media. Both
         # are built fresh here instead. See Tools\Build-WindowsISOs.ps1 for
         # the full method (including exactly what BYPASS Install.iso bypasses
         # and why) and its current test status.
-        . (Join-Path $ScriptRoot 'Tools\Build-WindowsISOs.ps1')
         Write-Host "  Building Windows installation ISOs (FULL and BYPASS) from Microsoft..." -ForegroundColor White
         Write-Host "  These are never downloaded from us or shipped in this repo — Microsoft doesn't" -ForegroundColor DarkGray
         Write-Host "  allow redistributing Windows media, so your own copy is built afresh instead." -ForegroundColor DarkGray
-        $isoWorkFolder = Join-Path $tempRoot 'ISO-Build'
         New-WindowsInstallIsos -DestFolder $isoDestFolder -WorkFolder $isoWorkFolder -FidoPath $FidoPath
         Write-Host ""
     }
@@ -905,28 +909,28 @@ Write-Host ""
 . (Join-Path $ScriptRoot 'Tools\Robocopy-Common.ps1')
 
 Write-Host ""
-Write-Host "  Copying USB-INSTALL..." -ForegroundColor Cyan
+Write-Host "  Creating USB-INSTALL..." -ForegroundColor Cyan
 $exitCode = Invoke-RobocopyDotsOnly -RobocopyArgs @(
     "$SRC_INSTALL\\", "$tgtL1`:\\", '/E', '/COPY:DAT', '/DCOPY:DAT', '/NFL', '/NDL', '/NJH', '/NJS', '/R:2', '/W:5',
     '/XD', 'System Volume Information'
 )
 if ($exitCode -ge 8) { throw "Robocopy failed on USB-INSTALL (exit $exitCode)." }
 
-Write-Host "  Copying WinPE boot files..." -ForegroundColor Cyan
+Write-Host "  Adding WinPE boot files..." -ForegroundColor White
 $exitCode = Invoke-RobocopyDotsOnly -RobocopyArgs @(
     "$bootExtract\\", "$tgtL1`:\\", '/E', '/COPY:DAT', '/DCOPY:DAT', '/NFL', '/NDL', '/NJH', '/NJS', '/R:2', '/W:5',
     '/XD', 'System Volume Information'
 )
 if ($exitCode -ge 8) { throw "Robocopy failed on WinPE boot files (exit $exitCode)." }
 
-Write-Host "  Copying Scripts (will be hidden)..." -ForegroundColor Cyan
+Write-Host "  Adding Scripts (will be hidden)..." -ForegroundColor White
 $exitCode = Invoke-RobocopyDotsOnly -RobocopyArgs @(
     "$scriptsExtract\\", "$tgtL1`:\Scripts\\", '/E', '/COPY:DAT', '/DCOPY:DAT', '/NFL', '/NDL', '/NJH', '/NJS', '/R:2', '/W:5',
     '/XD', 'System Volume Information'
 )
 if ($exitCode -ge 8) { throw "Robocopy failed on Scripts (exit $exitCode)." }
 
-Write-Host "  Copying On2it-WinFixIT... ($(Format-SizeMB $srcPostMB))" -ForegroundColor Cyan
+Write-Host "  Creating On2it-WinFixIT... ($(Format-SizeMB $srcPostMB))" -ForegroundColor Cyan
 $postSplit = Get-LargeFileSplit -SourceRoot $SRC_POST
 $exitCode = Invoke-RobocopyLargeThenSmall -SourceRoot $SRC_POST -DestDriveLetter $tgtL2 `
     -LargeFiles $postSplit.LargeFiles -SmallMB $postSplit.SmallMB `
@@ -940,7 +944,7 @@ if ($exitCode -ge 8) { throw "Robocopy failed on On2it-WinFixIT (exit $exitCode)
 # 8. Hide Scripts folder on USB-INSTALL
 # ─────────────────────────────────────────────────────────────────────────────
 Write-Host ""
-Write-Host "  Hiding Scripts and system files on USB-INSTALL..." -ForegroundColor Cyan
+Write-Host "  Hiding Scripts and system files on USB-INSTALL..." -ForegroundColor White
 
 Get-ChildItem -LiteralPath "$tgtL1`:\" -Force | ForEach-Object {
     if ($SAFE_LIST -notcontains $_.Name) {
@@ -951,7 +955,7 @@ Get-ChildItem -LiteralPath "$tgtL1`:\" -Force | ForEach-Object {
 # ─────────────────────────────────────────────────────────────────────────────
 # 9. Set USB-INSTALL partition read-only
 # ─────────────────────────────────────────────────────────────────────────────
-Write-Host "  Setting USB-INSTALL partition read-only..." -ForegroundColor Cyan
+Write-Host "  Setting USB-INSTALL partition read-only..." -ForegroundColor White
 $readOnlyOK = Set-PartitionReadOnlySafe -DiskNum $tgtDiskNum -DriveLetter $tgtL1
 if (-not $readOnlyOK) {
     Write-Host "  WARNING: This USB's controller does not support read-only" -ForegroundColor Yellow

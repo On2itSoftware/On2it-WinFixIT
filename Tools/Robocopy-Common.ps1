@@ -226,14 +226,14 @@ function Invoke-RobocopyLargeThenSmall {
     $sourceRootTrim = $SourceRoot.TrimEnd('\')
 
     if ($LargeFiles.Count -gt 0) {
-        Write-Host "  Copying $($LargeFiles.Count) large file$(if ($LargeFiles.Count -ne 1) { 's' }) first (no live progress within each -- please wait)..." -ForegroundColor Cyan
+        Write-Host "  Adding $($LargeFiles.Count) large file$(if ($LargeFiles.Count -ne 1) { 's' }) first (no live progress within each -- please wait)..." -ForegroundColor White
         foreach ($file in $LargeFiles) {
             $relativePath = $file.FullName.Substring($sourceRootTrim.Length).TrimStart('\')
             $relativeDir  = Split-Path $relativePath -Parent
             $srcDir  = if ($relativeDir) { Join-Path $sourceRootTrim $relativeDir } else { $sourceRootTrim }
             $destDir = if ($relativeDir) { "$DestDriveLetter`:\$relativeDir" } else { "$DestDriveLetter`:\" }
 
-            Write-Host ("  Copying {0} ({1:N0} MB)..." -f $file.Name, [math]::Round($file.Length / 1MB, 0)) -ForegroundColor Cyan
+            Write-Host ("  Adding {0} ({1:N0} MB)..." -f $file.Name, [math]::Round($file.Length / 1MB, 0)) -ForegroundColor White
             $exitCode = Invoke-RobocopyDotsOnly -RobocopyArgs @(
                 "$srcDir\", "$destDir\", $file.Name,
                 '/J', '/COPY:DAT', '/DCOPY:DAT', '/R:2', '/W:5', '/NFL', '/NDL', '/NJH', '/NJS'
@@ -243,6 +243,6 @@ function Invoke-RobocopyLargeThenSmall {
         Write-Host ""
     }
 
-    Write-Host ("  Copying remaining files... ({0:N0} MB)" -f $SmallMB) -ForegroundColor Cyan
+    Write-Host ("  Adding remaining files... ({0:N0} MB)" -f $SmallMB) -ForegroundColor White
     return Invoke-RobocopyDotsWithETA -DestDriveLetter $DestDriveLetter -ExpectedTotalMB $SmallMB -RobocopyArgs $SmallPassArgs
 }
