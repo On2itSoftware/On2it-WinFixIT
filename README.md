@@ -5,11 +5,12 @@ WinFixIT is a FREE USB Toolkit and App.  It has a: Windows 11 Compatibility Chec
 - **Windows 11 Compatibility Checker** — works even before Windows is installed
 - **BYPASS Installer** — installs Windows 11 on older hardware, bypassing Microsoft's TPM and Secure Boot requirements where necessary
 - **Comprehensive DeBloater** — over 80 options, each with full plain-English advice, not just a checkbox and a technical name
-- **Expandable Library** — installable apps, curated reference material, utilities and software tools (currently 60 menus, 225 options) — and you can add your own
 
 ![DeBloater showing real advice for the "Remove OneDrive" option](Docs/WinFixIT%20-%20DeBloater%20Screenshot.jpg)
 
 Every option gets this treatment — not just a checkbox and a technical name, but real, opinionated, plain-English advice on what it actually does and whether you'd want it.
+
+**Its Expandable Library** contains installable apps, curated reference material, utilities and software tools (currently 60 menus, 225 options) — and you can add your own.
 
 **Why I built it**: I spent decades building software.  I'd more or less retired — until upgrading to Windows 11 myself left me thoroughly confused by the bloat and the setup screens.  I didn't want my students facing the same thing.  So, I built WinFixIT, with two AI helpers — Copilot, then Claude — supplying the expertise I didn't have.  It's free — please try it, I'd love your feedback.
 
