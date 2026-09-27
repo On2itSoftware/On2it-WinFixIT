@@ -12,11 +12,15 @@ Every option gets this treatment — not just a checkbox and a technical name, b
 
 **Its Expandable Library** contains installable apps, curated reference material, utilities and software tools (currently 60 menus, 225 options) — and you can add your own.
 
-**Why I built it**: I spent decades building software.  I'd more or less retired — until upgrading to Windows 11 myself left me thoroughly confused by the bloat and the setup screens.  I didn't want my students facing the same thing.  So, I built WinFixIT, with two AI helpers — Copilot, then Claude — supplying the expertise I didn't have.  It's free — please try it, I'd love your feedback.
+**Why I built it**:  I spent over half a century building software.  I'd more or less retired, but was still teaching people to use computers.  Then I upgraded to Windows 11 myself.  It left me thoroughly confused by the bloat and the setup involved.  I didn't want my students facing the same thing.  So, I reviewed what others had done.  Everything I could find, seemed aimed at technical users.
+
+I wanted something that gave even novices sound technical advice.  So, I built WinFixIT, with two AI helpers — Copilot, then Claude, who supplied the expertise in PowerShell and Windows' internals that I didn't have.
+
+It's free — please try it, I'd love your feedback.
 
 Connect with me on [LinkedIn](https://www.linkedin.com/in/BrianMcGuigan/).
 
-**A note on Windows installation**:  You do not have to include a Windows Installer on your USB.  The Compatibility Checker, DeBloater, and Library all work without it.  If you want your USB to be able to install Windows 11, a copy of the latest version will be downloaded straight from Microsoft's official servers. (It uses [Fido](https://github.com/pbatard/Fido), the same official-download mechanism Rufus uses.)  So, WinFixIT's `FULL Install.iso` is the untouched Microsoft image.
+**A note on Windows installation**:  You do not have to include a Windows Installer on your USB.  The Compatibility Checker, DeBloater, and Library all work without it.  If you want your USB to be able to install Windows 11, a copy of the latest version will be downloaded straight from Microsoft's official servers.  (It uses [Fido](https://github.com/pbatard/Fido), the same official-download mechanism Rufus uses.)  So, WinFixIT's `FULL Install.iso` is the untouched Microsoft image.
 
 WinFixIT's `BYPASS Install.iso` is that same image with the one file Windows Setup uses to enforce its TPM 2.0/Secure Boot/supported-CPU checks removed.  (This is the same approach used by Rufus's "Extended Windows 11 Installation" option.)
 
