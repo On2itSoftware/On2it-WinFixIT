@@ -73,10 +73,6 @@ No technical experience needed — every step below is exactly what to click.
 - If any version of Windows is already installed, Compatibility Checker can do a somewhat more comprehensive job.
 - DeBloater works after Windows 11 has been installed, so it can be used on pre-installed machines.
 
-## Notes
-
-- This build script is the public counterpart to our internal in-house build tooling — same partitioning and copy logic, just pointed at a public download instead of our internal file server.
-
 ## License
 
 Free and open source, under the GNU General Public License v3.0 (GPL-3.0) — use it, share it, modify it, even build on it commercially, as long as anything you distribute (including modified versions) stays licensed under GPL-3.0 too.  Full terms: [LICENSE](LICENSE).
