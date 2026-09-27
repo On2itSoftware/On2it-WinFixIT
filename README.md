@@ -15,7 +15,13 @@ Every option gets this treatment — not just a checkbox and a technical name, b
 
 Connect with me on [LinkedIn](https://www.linkedin.com/in/BrianMcGuigan/).
 
-**A note on Windows installation media**: the two Windows ISOs are not downloaded from us and are not included in this repo at all.  The build script fetches your own copy straight from Microsoft's official servers while it runs (using [Fido](https://github.com/pbatard/Fido), the same official-download mechanism Rufus itself uses), so `FULL Install.iso` is the untouched Microsoft image.  `BYPASS Install.iso` is that same official image with the one file Windows Setup uses to enforce its TPM/Secure Boot/RAM checks removed — the same approach Rufus's own "Extended Windows 11 Installation" option uses.  You'll still need your own valid Windows license/product key to install and activate either one.  If you'd rather supply your own ISOs instead, simply substitute your own `FULL Install.iso` and `BYPASS Install.iso` in the `Install\Windows` folder of the `On2it-WinFixIT` partition after the build finishes.  (Office, Project, and Visio installers are *not* included in this public build at all — those are licensed specifically to On2it Software Ltd and won't work with anyone else's key anyway.)
+**A note on Windows installation**:  You do not have to include a Windows Installer on your USB.  The Compatibility Checker, DeBloater, and Library all work without it.  If you want your USB to be able to install Windows 11, a copy of the latest version will be downloaded straight from Microsoft's official servers. (It uses [Fido](https://github.com/pbatard/Fido), the same official-download mechanism Rufus uses.)  So, WinFixIT's `FULL Install.iso` is the untouched Microsoft image.
+
+WinFixIT's `BYPASS Install.iso` is that same image with the one file Windows Setup uses to enforce its TPM 2.0/Secure Boot/supported-CPU checks removed.  (This is the same approach used by Rufus's "Extended Windows 11 Installation" option.)
+
+RAM and storage aren't touched — Compatibility Checker already covers those, and there's no point bypassing a genuine hardware shortfall.  You'll still need your own valid Windows license/product key to install and activate either one.
+
+If Microsoft's automatic download doesn't work for you, the build walks you through getting your own copy instead — via Microsoft's Media Creation Tool, or a Windows ISO you already have.  WinFixIT will still build a BYPASS Install.iso from it for you.
 
 ## 🎬 Watch the Video Preview (8:30)
 
