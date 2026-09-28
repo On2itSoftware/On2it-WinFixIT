@@ -1,6 +1,6 @@
 # On2it WinFixIT USB
 
-WinFixIT is a FREE USB Toolkit and App.  It has a: Windows 11 Compatibility Checker, BYPASS Installer and DeBloater.  With an Expandable Library of: Installable Apps, extensive, curated Reference Material, Utilities and Software Tools.  Build your own FREE copy of the On2it-WinFixIT USB at home.
+**WinFixIT is a FREE USB Toolkit and App**.  It has a: Windows 11 Compatibility Checker, BYPASS Installer and DeBloater.  With an Expandable Library of: Installable Apps, extensive, curated Reference Material, Utilities and Software Tools.  Build your own FREE copy of the On2it-WinFixIT USB at home.
 
 - **Windows 11 Compatibility Checker** — works even before Windows is installed
 - **BYPASS Installer** — installs Windows 11 on older hardware, bypassing Microsoft's TPM and Secure Boot requirements where necessary
@@ -10,19 +10,21 @@ WinFixIT is a FREE USB Toolkit and App.  It has a: Windows 11 Compatibility Chec
 
 Every option gets this treatment — not just a checkbox and a technical name, but real, opinionated, plain-English advice on what it actually does and whether you'd want it.
 
-**Its Expandable Library** contains installable apps, curated reference material, utilities and software tools (currently 60 menus, 225 options) — and you can add your own.
+**Its Expandable Library** contains installable apps, curated reference material, utilities and software tools (currently 60 menus, 225 options) — and you can add your own, simply by adding files and folders.
 
-**Why I built it**:  I spent over half a century building software.  I'd more or less retired, but was still teaching people to use computers.  Then I upgraded to Windows 11 myself.  It left me thoroughly confused by the bloat and the setup involved.  I didn't want my students facing the same thing.  So, I reviewed what others had done.  Everything I could find, seemed aimed at technical users.
+**Why I built it**:  I spent over half a century building software.  I'd more or less retired, but was still teaching people to use computers, just to keep my hand in.  Then I upgraded to Windows 11 myself.  It left me thoroughly confused by the bloat and the setup involved.  I didn't want my students facing the same thing.  So, I reviewed what others had done.  Everything I could find, seemed aimed at technical users.
 
 I wanted something that gave even novices sound technical advice.  So, I built WinFixIT, with two AI helpers — Copilot, then Claude, who supplied the expertise in PowerShell and Windows' internals that I didn't have.
 
 It's free — please try it, I'd love your feedback.
 
-Connect with me on [LinkedIn](https://www.linkedin.com/in/BrianMcGuigan/).
+This is the first time I have used AI to develop anything.  But in my whole career, I've never carried the same tools forward from one project to the next.  So, I suppose the more things change, the more they stay the same.  Though this time is the first time I didn't need to do the typing! 😊  I did however, still need to do all the testing! 😒
 
-**A note on Windows installation**:  You do not have to include a Windows Installer on your USB.  The Compatibility Checker, DeBloater, and Library all work without it.  If you want your USB to be able to install Windows 11, a copy of the latest version will be downloaded straight from Microsoft's official servers.  (It uses [Fido](https://github.com/pbatard/Fido), the same official-download mechanism Rufus uses.)  So, WinFixIT's `FULL Install.iso` is the untouched Microsoft image.
+Connect with me on [LinkedIn](https://www.linkedin.com/in/BrianMcGuigan/) to see what else I've done. Or direct using Brian@On2itSoftware.com
 
-WinFixIT's `BYPASS Install.iso` is that same image with the one file Windows Setup uses to enforce its TPM 2.0/Secure Boot/supported-CPU checks removed.  (This is the same approach used by Rufus's "Extended Windows 11 Installation" option.)
+**Windows installation**:  You do not have to include a Windows Installer on your USB.  The Compatibility Checker, DeBloater, and Library all work just fine without it.  If you want your USB to be able to install Windows 11, a copy of the latest version will be downloaded straight from Microsoft's official servers.  (It uses [Fido](https://github.com/pbatard/Fido), the same official-download mechanism Rufus uses.)  So, WinFixIT's **FULL Install.iso** is the untouched Microsoft image.
+
+WinFixIT's **BYPASS Install.iso** is that same image with the one file Windows Setup uses to enforce its TPM 2.0/Secure Boot/supported-CPU checks removed.  (This is the same approach used by Rufus's "Extended Windows 11 Installation" option.)
 
 RAM and storage aren't touched — Compatibility Checker already covers those, and there's no point bypassing a genuine hardware shortfall.  You'll still need your own valid Windows license/product key to install and activate either one.
 
@@ -40,7 +42,7 @@ See it in action — the Compatibility Checker, BYPASS Installer, DeBloater, and
 
 ## 📘 User Manual
 
-**[Read the User Manual](https://raw.githubusercontent.com/On2itSoftware/On2it-WinFixIT/master/On2it-WinFixIT/WinFixIT%20-%20User%20Manual.pdf)** — opens on its own in your browser's PDF viewer, full width.
+**[Read the User Manual](https://raw.githubusercontent.com/On2itSoftware/On2it-WinFixIT/master/On2it-WinFixIT/WinFixIT%20-%20User%20Manual.pdf)** — opens on its own in your browser's PDF viewer, full width.  There are 92 pages of it, including screenshots of even the Windows Setup process, for the uninitiated.  You should not need to read it, as I have gone to great lengths to ensure WinFixIT explains itself at every stage, as you go through it.  Let me know, did I succeed?  
 
 ## 📥 Illustrated Download and Quickstart Guide
 
