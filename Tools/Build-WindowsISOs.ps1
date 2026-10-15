@@ -127,6 +127,41 @@ function New-DataIso {
     [On2it.ISOFile]::Create($DestIsoPath, $image.ImageStream, $image.BlockSize, $image.TotalBlocks)
 }
 
+# Fido itself needs its own maintainer to add support for a new Windows
+# release before Fido will ever offer it -- confirmed for real, 2026-10-15:
+# the vendored v1.70 copy only listed up to 25H2, even though 26H2 had
+# already shipped, purely because v1.70 predates Fido adding 26H2 support.
+# Rather than relying on remembering to update the vendored copy by hand
+# every time Microsoft ships a new release, this fetches whatever Fido's own
+# GitHub release currently considers latest, every run, and uses that
+# instead -- falling back to the vendored copy untouched if the fetch fails
+# for any reason (offline, GitHub unreachable, API rate limit), so a network
+# hiccup here degrades gracefully rather than blocking the build, same
+# philosophy as the ISO download itself.
+function Get-LatestFidoPath {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$VendoredFidoPath,
+        [Parameter(Mandatory)][string]$WorkFolder
+    )
+    Write-Host "  Checking for a newer version of Fido (the ISO-link fetcher)..." -ForegroundColor Cyan
+    try {
+        $release = Invoke-RestMethod -Uri 'https://api.github.com/repos/pbatard/Fido/releases/latest' -ErrorAction Stop
+        $tag = $release.tag_name
+        $rawUrl = "https://raw.githubusercontent.com/pbatard/Fido/$tag/Fido.ps1"
+        $downloadedPath = Join-Path $WorkFolder 'Fido.ps1'
+        Invoke-WebRequest -Uri $rawUrl -OutFile $downloadedPath -UseBasicParsing -ErrorAction Stop
+        Write-Host "  Using Fido $tag, downloaded fresh just now." -ForegroundColor White
+        return $downloadedPath
+    } catch {
+        Write-Host "  Could not fetch the latest Fido ($($_.Exception.Message)) -- using the version" -ForegroundColor DarkYellow
+        Write-Host "  bundled with this build instead. If the Windows 11 download below fails or" -ForegroundColor DarkYellow
+        Write-Host "  offers an unexpected release, a newer Fido may be available at:" -ForegroundColor DarkYellow
+        Write-Host "  https://github.com/pbatard/Fido/releases" -ForegroundColor DarkYellow
+        return $VendoredFidoPath
+    }
+}
+
 function Get-OfficialWindows11IsoUrl {
     [CmdletBinding()]
     param(
@@ -344,6 +379,7 @@ function New-WindowsInstallIsos {
         # an update, or anything else - rather than making the user close the
         # window and re-run the whole script just to reach the fallback that
         # was one prompt away the whole time.
+        $FidoPath = Get-LatestFidoPath -VendoredFidoPath $FidoPath -WorkFolder $WorkFolder
         $sourceUrl = Get-OfficialWindows11IsoUrl -FidoPath $FidoPath
         if ($sourceUrl) {
             Write-Host "  Downloading the official Windows 11 ISO from Microsoft..." -ForegroundColor Cyan
