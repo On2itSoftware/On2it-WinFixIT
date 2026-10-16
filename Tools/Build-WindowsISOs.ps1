@@ -46,14 +46,25 @@
    Designed by: Brian McGuigan
             of: On2it Software Ltd
        Code by: Claude
-       Version: 2 (New-WindowsInstallIsos now writes ISO Descriptions.txt
-                itself, every run - fresh build or cached re-use - describing
-                exactly what was bypassed and how. Content settled with
-                Brian, 2026-09-25: RAM/storage deliberately not listed as
-                bypassed, since WinFixIT's own Compatibility Checker already
-                covers that ground and there's no value bypassing a real
-                hardware shortfall anyway)
-         Dated: 25-Sep-26
+       Version: 4 (Show-ManualIsoInstructions no longer trusts one Test-Path
+                after the "Press Enter once it's there" prompt and moves on --
+                confirmed for real, 2026-10-15: pressing Enter before a manual
+                copy of FULL Install.iso had actually finished let the build
+                carry on with a file still open for writing, which then
+                failed later trying to read it. Now loops, checking the file
+                isn't still locked by whatever's copying it and is at least a
+                plausible size for a genuine Windows 11 ISO, re-prompting
+                instead of accepting an in-progress or truncated copy.
+                Also: Get-OfficialWindows11IsoUrl now resolves and downloads
+                whatever Fido's own GitHub release currently considers
+                latest, right before using it, rather than relying solely
+                on the vendored Fido.ps1 copy -- confirmed for real,
+                2026-10-15: the vendored v1.70 copy only listed up to
+                Windows 11 25H2, even though 26H2 had already shipped,
+                purely because v1.70 predates Fido adding 26H2 support.
+                Falls back to the vendored copy untouched if the live
+                fetch fails for any reason)
+         Dated: 15-Oct-26
         Status: ISO-build mechanism not yet proven end-to-end. Needs a live
                 test that Windows Setup actually accepts a BYPASS Install.iso
                 rebuilt this way (IMAPI2 + appraiserres.dll strip) on real
@@ -302,6 +313,47 @@ function Show-ManualIsoInstructions {
     Write-Host ""
 
     $suppliedFullPath = Join-Path $DestFolder 'FULL Install.iso'
+
+    # Keep checking rather than trust one Test-Path and move on -- confirmed for
+    # real, 2026-10-15, Brian live run: pressing Enter before a copy into
+    # DestFolder had actually finished let the script carry on with a file
+    # still open for writing, which then failed later ("The process cannot
+    # access the file because it is being used by another process") when the
+    # BYPASS build step tried to read it. A file can exist and still be
+    # mid-copy, so this also confirms it isn't locked by another process and
+    # is at least a plausible size for a real Windows 11 ISO (ISOs seen here
+    # have run 7-8 GB; anything under 3 GB is almost certainly a truncated or
+    # still-copying file, not a genuine ISO) before accepting it.
+    while (Test-Path -LiteralPath $suppliedFullPath) {
+        $fileInfo = Get-Item -LiteralPath $suppliedFullPath
+        $isLocked = $false
+        try {
+            $stream = [System.IO.File]::Open($fileInfo.FullName, 'Open', 'Read', 'None')
+            $stream.Close()
+        } catch {
+            $isLocked = $true
+        }
+
+        if ($isLocked) {
+            Write-Host "  That file is still open/being written to by something else -- wait for the" -ForegroundColor Yellow
+            Write-Host "  copy to finish completely, then press Enter again: " -NoNewline -ForegroundColor Yellow
+            Read-Host
+            Write-Host ""
+            continue
+        }
+
+        if ($fileInfo.Length -lt 3GB) {
+            Write-Host "  That file is only $([math]::Round($fileInfo.Length / 1GB, 1)) GB -- a genuine Windows 11 ISO" -ForegroundColor Yellow
+            Write-Host "  is normally 7-8 GB, so this looks like an incomplete copy. Wait for it to" -ForegroundColor Yellow
+            Write-Host "  finish completely, then press Enter again: " -NoNewline -ForegroundColor Yellow
+            Read-Host
+            Write-Host ""
+            continue
+        }
+
+        break
+    }
+
     return (Test-Path -LiteralPath $suppliedFullPath)
 }
 
