@@ -377,32 +377,17 @@ function New-WindowsInstallIsos {
     New-Item -ItemType Directory -Path $WorkFolder -Force | Out-Null
 
     $fullIsoPath = Join-Path $DestFolder 'FULL Install.iso'
-    $bypassIsoPathCheck = Join-Path $DestFolder 'BYPASS Install.iso'
 
-    # Ask, don't silently assume - Brian, 2026-09-27: "How do we know that
-    # they are not obsolete copies?" Checking freshness against Microsoft
-    # would mean another automated hit against the same Sentinel-sensitive
-    # endpoint on every single run, even when the cache is fine - not worth
-    # it given we're already fighting that block. Age is a plain local file
-    # timestamp instead, no network contact needed, and the user (who knows
-    # whether a new Windows release has shipped recently) makes the actual
-    # call. Only asked when BOTH already exist - a partial cache (one file
-    # present, not the other) is unusual enough to just fall through to the
-    # existing per-file handling below instead.
-    if ((Test-Path -LiteralPath $fullIsoPath) -and (Test-Path -LiteralPath $bypassIsoPathCheck)) {
-        $fullAgeDays = [math]::Floor(((Get-Date) - (Get-Item -LiteralPath $fullIsoPath).LastWriteTime).TotalDays)
-        $bypassAgeDays = [math]::Floor(((Get-Date) - (Get-Item -LiteralPath $bypassIsoPathCheck).LastWriteTime).TotalDays)
-        Write-Host "  I already have a:" -ForegroundColor White
-        Write-Host "       FULL Install.iso    created $fullAgeDays day$(if ($fullAgeDays -ne 1) { 's' }) ago" -ForegroundColor White
-        Write-Host "       BYPASS Install.iso  created $bypassAgeDays day$(if ($bypassAgeDays -ne 1) { 's' }) ago" -ForegroundColor White
-        Write-Host "  Would you like to Re-use them or create New ones? (R/N): " -NoNewline -ForegroundColor Yellow
-        $reuseChoice = Read-Host
-        Write-Host ""
-        if ($reuseChoice -match '^[Nn]') {
-            Remove-Item -LiteralPath $fullIsoPath -Force
-            Remove-Item -LiteralPath $bypassIsoPathCheck -Force
-        }
-    }
+    # The "I already have a:... Re-use or New?" check used to live here, but
+    # moved to Build-Your-USB.ps1, to run BEFORE the Download/Supply
+    # explanation and prompt rather than after -- confirmed for real,
+    # 2026-10-16, Brian live run: picking Supply only to immediately be asked
+    # "I already have both, Re-use or New?" made the Supply choice look
+    # pointless, since Re-use ignores it either way. This function is only
+    # ever called from there, so by the time it runs, that decision (and any
+    # deletion of stale copies) has already been made -- it just finds
+    # whatever's actually on disk now.
+
     # Captured whether fresh or cached, from the URL if a fresh fetch happened
     # this run, or by re-deriving from the existing file's name pattern isn't
     # reliable enough to bother with - so a cached re-run's description below

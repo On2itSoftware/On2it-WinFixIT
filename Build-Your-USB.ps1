@@ -547,6 +547,20 @@ Write-Host ""
 # stale, never describing something that didn't happen.
 . (Join-Path $ScriptRoot 'Tools\Robocopy-Common.ps1')
 
+# "$days days ago" reads as nonsense for anything made earlier today -- Floor()
+# on a sub-24-hour TimeSpan is always 0, so a file from 5 minutes ago and one
+# from 23 hours ago both said "created 0 days ago". Confirmed for real,
+# 2026-10-16, Brian live run: genuinely unclear whether that meant today at
+# all. Anything under a day now says the actual time instead.
+function Format-FileAge {
+    param([Parameter(Mandatory)][datetime]$When)
+    $ageDays = [math]::Floor(((Get-Date) - $When).TotalDays)
+    if ($ageDays -lt 1) {
+        return "earlier today, at $($When.ToString('h:mm tt'))"
+    }
+    return "$ageDays day$(if ($ageDays -ne 1) { 's' }) ago"
+}
+
 $isoDestFolder = Join-Path $SRC_POST 'Install\Windows'
 New-Item -ItemType Directory -Path $isoDestFolder -Force | Out-Null
 $isoDescPath = Join-Path $isoDestFolder 'ISO Descriptions.txt'
@@ -574,6 +588,38 @@ if (-not $includeWindowsInstall) {
         "BYPASS Install.iso to this folder - no need to rebuild the USB."
     )
 } else {
+    . (Join-Path $ScriptRoot 'Tools\Build-WindowsISOs.ps1')
+    $isoWorkFolder = Join-Path $tempRoot 'ISO-Build'
+
+    $fullIsoPathCheck = Join-Path $isoDestFolder 'FULL Install.iso'
+    $bypassIsoPathCheck = Join-Path $isoDestFolder 'BYPASS Install.iso'
+    $reuseExisting = $false
+
+    # Checked BEFORE explaining the Download/Supply choice and asking for it --
+    # confirmed for real, 2026-10-16, Brian live run: picking Supply only to be
+    # immediately asked "I already have both, Re-use or New?" made the Supply
+    # choice look pointless, since Re-use ignores it either way. If both are
+    # already here, there's nothing to download or supply unless the user
+    # actually wants fresh ones.
+    if ((Test-Path -LiteralPath $fullIsoPathCheck) -and (Test-Path -LiteralPath $bypassIsoPathCheck)) {
+        Write-Host "  I already have a:" -ForegroundColor White
+        Write-Host "       FULL Install.iso    created $(Format-FileAge (Get-Item -LiteralPath $fullIsoPathCheck).LastWriteTime)" -ForegroundColor White
+        Write-Host "       BYPASS Install.iso  created $(Format-FileAge (Get-Item -LiteralPath $bypassIsoPathCheck).LastWriteTime)" -ForegroundColor White
+        Write-Host "  Would you like to Re-use them or create New ones? (R/N): " -NoNewline -ForegroundColor Yellow
+        $reuseChoice = Read-Host
+        Write-Host ""
+        if ($reuseChoice -match '^[Rr]') {
+            $reuseExisting = $true
+        } else {
+            Remove-Item -LiteralPath $fullIsoPathCheck -Force
+            Remove-Item -LiteralPath $bypassIsoPathCheck -Force
+        }
+    }
+
+    if ($reuseExisting) {
+        New-WindowsInstallIsos -DestFolder $isoDestFolder -WorkFolder $isoWorkFolder -FidoPath $FidoPath
+        Write-Host ""
+    } else {
     Write-Host "  We can either do it for you." -NoNewline -ForegroundColor White
     Write-Host "  We will:" -ForegroundColor Gray
     Write-Host "     - Build 'FULL Install.iso' by downloading Microsoft's latest version" -ForegroundColor Gray
@@ -611,10 +657,6 @@ if (-not $includeWindowsInstall) {
     Write-Host "  Download/Supply? (D/S): " -NoNewline -ForegroundColor Yellow
     $isoChoice = Read-Host
     Write-Host ""
-    
-
-    . (Join-Path $ScriptRoot 'Tools\Build-WindowsISOs.ps1')
-    $isoWorkFolder = Join-Path $tempRoot 'ISO-Build'
 
     if ($isoChoice -match '^[Ss]') {
         # Just hands off to New-WindowsInstallIsos's own -SkipAutomatic path -
@@ -637,6 +679,7 @@ if (-not $includeWindowsInstall) {
         Write-Host "  allow redistributing Windows media, so your own copy is built afresh instead." -ForegroundColor DarkGray
         New-WindowsInstallIsos -DestFolder $isoDestFolder -WorkFolder $isoWorkFolder -FidoPath $FidoPath
         Write-Host ""
+    }
     }
 }
 
