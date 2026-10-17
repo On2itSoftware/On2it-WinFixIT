@@ -30,6 +30,20 @@ RAM and storage aren't touched — Compatibility Checker already covers those, a
 
 If Microsoft's automatic download doesn't work for you, the build walks you through getting your own copy instead — via Microsoft's Media Creation Tool, or a Windows ISO you already have.  WinFixIT will still build a BYPASS Install.iso from it for you.
 
+## Is it safe?
+
+**Nothing here is hidden.** Here's exactly what BYPASS Install.iso changes, and what it doesn't:
+
+- `sources\appraiserres.dll` is emptied (zero bytes), not deleted — Setup expects the file to still exist, just unreadable as a real check.
+- Right before Setup runs, WinFixIT sets these registry values — the exact function that does it is public, not buried in a private build: [`Windows 11 BYPASS Registry Keys, Reference Copy.ps1`](Tools/Windows%2011%20BYPASS%20Registry%20Keys%2C%20Reference%20Copy.ps1).
+  - `HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\HwReqChk\HwReqChkVars` → `SQ_SecureBootCapable=TRUE`, `SQ_SecureBootEnabled=TRUE`, `SQ_TpmVersion=2`, `SQ_RamMB=8192`
+  - `HKLM\SYSTEM\Setup\MoSetup\AllowUpgradesWithUnsupportedTPMOrCPU` → `1`
+- That's the whole mechanism — both techniques traced from Rufus's own source code, credited above. RAM and storage checks aren't touched at all.
+
+**Your FULL Install.iso download is verified** against Microsoft's own published SHA256 hash before BYPASS Install.iso is built from it — see `Test-FullInstallIsoHash` in [`Build-WindowsISOs.ps1`](Tools/Build-WindowsISOs.ps1). If it doesn't match, you're told plainly and shown how to check it yourself directly against Microsoft's page, not just told to trust it.
+
+**Microsoft's own position:** installing on hardware that doesn't meet their stated requirements means you're not guaranteed to receive updates, including security updates, and Microsoft doesn't support it. That's a real tradeoff, not a technicality — it's yours to weigh, not ours to hide.
+
 ## 🎬 Watch the Video Preview (8:30)
 
 [![Watch the WinFixIT Video Preview](Docs/WinFixIT%20-%20Video%20Preview%20Thumbnail.jpg)](https://youtu.be/QLdRPbDRlnM)
