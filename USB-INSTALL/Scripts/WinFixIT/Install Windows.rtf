@@ -1,0 +1,113 @@
+{\rtf1\ansi
+# Win11-INSTALL.rtf
+# =================
+#     Used by: W11-INSTALL.ps1
+#    Location: On2it-WinFixIT INSTALL\Scripts  - alongside Win11-INSTALL.ps1
+#
+# Maintainers: Edit with care. Do not remove section headers or tags.
+#   End-users: Won't see it
+#
+# These sections supply text to Win11-INSTALL.ps1 in the colours shown.
+# They explain installation options based on environment (Full Windows vs WinPE)
+# and guide the user through context-sensitive prompts.
+
+[DISPLAY WHEN - Display Installation Options]
+$C ===================================================================================================${Reset}
+$Y                                On2it-WinFixIT$W - INSTALLATION OPTIONS${Reset}
+$C ===================================================================================================${Reset}
+${W} When installing Windows 11 using On2it-WinFixIT${Reset}, you have two distinct paths 
+ depending on how you start the installer:
+
+${Y} Installing from within Windows${Reset}
+ If you're currently running Windows and launch On2it-WinFixIT from your desktop:
+    - You can choose to keep your existing files, apps, and settings.
+    - This is ideal if your system is working well and you simply 
+      want to refresh or repair Windows.
+    - You'll be guided through options like:
+        - Keep everything (files, apps, settings)
+        - Keep personal files only
+        - Wipe everything and start fresh
+
+${Y} Installing by booting from USB${Reset}
+ If you restart your computer and boot directly from the USB stick:
+    - You'll enter a special lightweight mode called the 
+     $W Windows Preinstallation Environment, or WinPE${Reset}.
+    - WinPE is designed for clean installs and recovery ONLY.  
+      It doesn't load a full Windows system.
+    - In this mode, you can only perform a full clean install.
+     $W All files, apps, and settings will be erased.${Reset}
+
+${W} WHICH SHOULD YOU CHOOSE?${Reset}
+    - If your system is working and you want flexibility - Start from Windows
+    - If your system is damaged or you want a clean slate - Boot from USB
+
+ On2it-WinFixIT will guide you through the correct steps based on how you started.
+ You'll always be shown clear choices before anything is installed.
+
+[CLEAR]$Y Press ANY Key to continue...$Reset
+$C ===================================================================================================${Reset}
+$Y                                BEFORE YOU BEGIN - BACKUP YOUR DATA!${Reset} 
+$C ===================================================================================================${Reset}
+
+ ${W}Before installing Windows 11 - whether you're keeping your files or starting fresh,
+ ${W}it is strongly recommended that you$Y create a backup$W of anything important.${Reset}
+
+ Even if you choose to keep your files and apps:
+   - Mistakes can happen.
+   - Power interruptions, disk errors, or unexpected issues during installation may result in data loss.
+
+ If you choose a full clean install:
+   - All files, apps, and settings will be permanently erased.
+   - There is no undo once the process begins.
+
+ WHAT TO BACK UP:
+   - Documents, photos, and personal files
+   - Emails, browser bookmarks, and saved passwords
+   - Any app data or configuration files
+   - Anything stored on the Desktop or Downloads folder
+
+ You can use an external USB drive, cloud storage, or a network location - whatever suits your setup.
+
+ On2it-WinFixIT will not begin installation until you confirm your choice, 
+ but it cannot recover lost data. Taking a backup now ensures peace of mind later.
+
+[CLEAR] $Y Press ANY Key to continue...$Reset
+[DISPLAY WHEN - Run from within Windows]
+$C =====================================================================================================${Reset}
+$Y                          On2it-WinFixIT$W - INSTALLING from within Windows${Reset}
+$C =====================================================================================================${Reset}
+
+$W You have started On2it-WinFixIT from within a full Windows environment.${Reset}
+ This gives you the widest range of installation choices:
+   -$W Keep everything${Reset}, preserves your files, apps, and settings.
+   -$W Keep personal files only${Reset},removes apps and resets settings.
+   -$W Wipe everything${Reset},performs a full clean install, removing all files, apps, and settings.
+
+ Even from within Windows, you can choose a full clean install if you want a fresh start.
+
+$W Before proceeding, it is strongly recommended that you BACKUP AMY IMPORTANT DATA!${Reset}
+ For, even if you choose to keep files, unexpected issues can still cause data loss.
+
+[DISPLAY WHEN - Booted from USB]
+$C ==================================================================================================${Reset}
+$Y                                On2it-WinFixIT$W - INSTALLING from USB Boot${Reset}
+$C ==================================================================================================${Reset}
+
+$W You have started On2it-WinFixIT by booting from the USB.${reset}
+
+ So, WinFixIT has to run in $W WinPE${Reset}  the $W W${Reset}indows $W P${Reset}reinstallation $WE${Reset}nvironment.  
+ WinPE is a lightweight environment designed specifically for Windows' Installation.  
+ WinPE does NOT have all the functionality of Windows itself.  
+
+$W In WinPE:${Reset}
+$W   - You can only perform a full clean install -$R All FILES, APPS, and SETTINGS will be erased.${Reset}
+
+$W To keep FILES, APPS, and SETTINGS${Reset}, you HAVE to run Windows Setup from a full installation 
+ of Windows.  So you should:
+$W   - RESTART your machine${Reset} and let it boot into Windows,
+$W   - OPEN the USB-INSTALL Partition on the USB${Reset}, and
+$W   - Double-Click RUN - On2it-WinFixIT.bat${Reset}.
+
+$W Before proceeding, it is strongly recommended that you BACKUP AnY IMPORTANT DATA!${Reset}
+
+}

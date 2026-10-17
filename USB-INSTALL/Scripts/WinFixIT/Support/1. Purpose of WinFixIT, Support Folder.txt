@@ -1,0 +1,51 @@
+Purpose of Scripts\WinFixIT\Support Folder
+===========================================
+This folder holds supporting tools used BY other WinFixIT scripts. None of
+these are meant to be run directly by end users - they're called from
+elsewhere in WinFixIT, or used by Brian for maintenance/testing.
+
+    Win10\  (folder - DO NOT DELETE)
+    --------------------------------
+    Arsenal Image Mounter's low-level disk driver package (phdskmnt.inf/.cat
+    plus per-architecture .sys driver files). Required for Install Windows.ps1
+    to mount a Windows ISO when WinFixIT is running in WinPE (booted from the
+    USB) - Mount-DiskImage isn't available there, so this is the only way to
+    get a Windows ISO's contents accessible for Setup.exe to run.
+
+    This exact folder was accidentally deleted once (2026-07-11) because it
+    had no purpose file of its own and looked like unnecessary clutter - it
+    silently broke every Windows install attempted from the USB (WinPE would
+    boot fine, but INSTALL would fail near-instantly with no clear error).
+    See its own purpose file for the full detail.
+
+    aim_ll.exe, aimapi.dll, aimwrfltr.sys
+    --------------------------------------
+    Arsenal Image Mounter (AIM Toolkit) command-line tool and its supporting
+    files, downloaded from C:\Program Files\AIM Toolkit\ and
+    C:\Windows\System32\drivers\ on a dev machine that has AIM Toolkit
+    installed. Used together with Win10\ above to mount a Windows ISO from
+    within WinPE.
+
+    Install-WinFixIT-Local.ps1
+    ---------------------------
+    Copies WinFixIT from the USB to C:\Program Files\WinFixIT\ so it can keep
+    running without the USB plugged in - both the USB-INSTALL partition
+    (Scripts, launcher .bat files, manual) and the On2it-WinFixIT partition
+    (Install content, ~20 GB). Creates a local launcher .bat and pins a Start
+    Menu shortcut. Called from the "Install WinFixIT Locally" option in
+    WinFixIT's own menu - not meant to be run standalone by an end user.
+
+    Hide-Root-Except-SafeList.ps1 / Unhide-All-Root.ps1
+    -----------------------------------------------------
+    Maintenance utilities: hide (or unhide) everything at the USB-INSTALL
+    partition root except a short safe list of files/folders that should stay
+    visible (see each script for its exact list). Not part of the normal
+    end-user flow - CLONE-WinFixIT-USB.ps1 already does the real hiding step
+    as part of every build; these are for testing/tweaking that behaviour
+    directly on an already-built USB without needing a full rebuild.
+
+    Check-StartMenuPinned.ps1
+    ---------------------------
+    Diagnostic script used while developing the Start Menu shortcut pinning
+    behaviour in Install-WinFixIT-Local.ps1 - exports and inspects the current
+    Start Menu pinned-items layout. Not part of the normal install flow.

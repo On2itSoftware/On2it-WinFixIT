@@ -1,0 +1,169 @@
+{\rtf1\ansi
+# Display-Scenarios.rtf
+# ---------------------
+#     Used by: On2it-WinFixIT-Scenarios.ps1
+#    Location: Root of first USB partition
+# Maintainers: Edit with care. Do not remove section headers or tags.
+#   End-users: This file is for reference only.  It is non-editable.
+#
+# To launch system run:
+#              RUN - On2it-WinFixIT.bat
+# in the Root of this USB. It will then display the text in the sections below, dependant
+# upon where you run it from.
+#
+#These sections actually supply the text to On2it-WinFixIT-CompatibilityChecker.ps1 in the colours shown.
+#
+[DISPLAY WHEN - First Opened]
+$C ==================================================================================================${Reset}
+$Y                                On2it-WinFixIT${W} - INTRODUCTION
+$C ==================================================================================================${Reset}
+ On2it-WinFixIT operates in these main phases:
+
+$Y CHECK Compatibility$Rst checks the ability of your PC to run Windows 11,
+    whether it has an OS loaded or not.
+
+ It advises you whether your machine is capable of a:  
+   -$W FULL Install$Rst if it is fully compatible, and passes all the tests.
+   -$W BYPASS Install$Rst if your hardware is capable of running Windows 11, 
+     but does not have all the security features that Microsoft likes to insist on. 
+     This enables you to still install Windows 11 on older but capable machines. 
+
+$Y INSTALL Windows$Rst then gives you the choice of your available options.
+
+$W Once Windows is installed on your PC$Rst, whether installed from this USB or not, 
+ you will also be able to:
+
+$Y      DEBLOAT Windows 11$Rst itself, from much of the software that Microsoft insists on installing  
+          along with Windows 11.  You can either accept all of our default advice, or since you 
+          will receive$W FULL advice on each option$Rst, you can choose options that are right for$W YOU$Rst.  
+
+$Y      OPEN Library$Rst to:
+$W        - INSTALL$Rst Apps pre-loaded by us or ones you’ve added yourself,
+$W        - READ$Rst Reference material — both off-line and on-line, 
+$W        - USE$Rst Utilities and Downloadable Software, 
+$W        - ADD$Rst your own Apps, Menus and Options, simply by adding files and folders to the USB. 
+     
+$Y      READ User Manual$Rst – if you want to.  But since the whole system explains itself as you progress, 
+          you really shouldn't need to.  It's there if you need it.
+
+[CLEAR] $Y Press ANY Key to continue...
+
+[DISPLAY WHEN - MAIN MENU Required]
+$C ==================================================================================================${Reset}
+$Y                                On2it-WinFixIT${Reset} -$W MAIN MENU
+$C ==================================================================================================${Reset}
+
+ Because you started On2it-WinFixIT from within Windows, ALL options are available.
+ You can:
+
+$Y CHECK Compatibility$Rst
+      If you are unsure whether this machine can run Windows 11, start here.
+      The Compatibility Checker compares PROCESSOR, MEMORY, STORAGE and FIRMWARE
+      against Microsoft’s requirements and produces a printable report.
+
+$Y INSTALL Windows 11$Rst
+      Choose either:
+$W        - FULL Install$Rst  Uses Windows 11 enhanced security features.
+$W        - BYPASS Install$Rst  Skips Microsoft's requirements.
+      You do not need to run CHECK Compatibility first, but the checker provides
+      fuller guidance if you do.
+
+$Y DEBLOAT Windows 11$W - works on any already installed copy. $Rst
+      Remove or restore optional components and privacy tweaks.  
+
+$Y OPEN Library$Rst
+      A multi-level, user-editable and infinitely-extensible
+$W      Dynamic Menu System$Rst driven entirely by the files and folders on the USB.
+
+      These enable you to:
+$W        - INSTALL$Rst Microsoft Office, WinFixIT and any other Application already on the USB.
+$W        - DOWNLOAD$Rst and/or Install other Applications, Utilities and Software tools,
+$W        - EXPLORE$Rst Artificial Intelligence and other operating systems,
+$W        - READ$Rst on-line and off-line reference materials,
+$W        - UPDATE$Rst the Library itself. 😊
+
+      At the last count there were 60 Menus containing 225 Options.
+      Since these are ALL editable: you can modify, add, remove, or reorganise them yourself.
+      So, your count may well vary. For full details see User Manual.
+
+$Y READ User Manual$Rst
+      The USB contains a WinFixIT - User Manual.pdf with screenshots and guidance.
+      It is optional but useful for unfamiliar users.
+
+[PROMPT] $Y CLICK an OPTION, or Enter (CHECK / INSTALL / DEBLOAT / OPEN / READ / exit)
+===============================================================================================================
+
+
+[DISPLAY WHEN - Booted from USB with a choice already made in Windows] 
+$C ==================================================================================================${Reset}
+$Y                 On2it-WinFixIT${Reset} - Compatibility Check ALREADY COMPLETED in Windows
+$C ==================================================================================================${Reset}
+$Y Congratulations $Rst - You have successfully re-booted from the USB
+
+ When you ran the Windows11-CompatibilityChecker in Windows, you had the options of:
+   - FULL Install,
+   - BYPASS Install.
+ You chose a$W <Option Selected> Install${Reset}.  
+
+[PROMPT] Do you wish to proceed with a ${Y}<Option Selected> Install?
+[PROMPT] Would you prefer to proceed with a ${Y}<Other Option> Install?
+=================================================================================================================
+
+
+[DISPLAY WHEN - Booted from USB with no prior choice in Windows]
+$C=====================================================================================================${Reset}
+$Y                 On2it-WinFixIT${Reset} - WITHOUT a Compatibility Check in Windows
+$C=====================================================================================================${Reset}
+You have booted from the USB, whilst you have an installation of Windows on your PC, without 
+first having run the Windows11 Compatibility Checker under Windows - or NOT made a choice, if you did.
+
+Only if the Compatibility Checker has the services of a full operating system, can it produce 
+fully comprehensive results.  
+
+If you run it from the Windows Installation environment, WinPE, which is all that is available
+when you boot from a USB, the Checker will NOT be able to produce fully comprehensive results. 
+ 
+You are strongly advised therefore to NOT run the Windows11-Compatibility Checker right NOW.  
+You should:
+   - Abandon this run.
+   - Restart Windows on your PC, and  
+   - Re-run On2it-WinFixIT.bat on the USB, from Windows.
+
+[PROMPT]$YWould you prefer to run the Compatibility Checker from Windows?${Reset}
+[PROMPT]$CYou realise, that if you run the Compatibility Checker right NOW, it WILL produce 
+inconclusive results.  So, you will ALWAYS be advised to run a$Y 'BYPASS Install'$C - to be safe.  
+
+If you want to be really sure whether your machine will be able to take a$Y 'FULL Install'$C 
+of Windows, you should answer "N" to the next question.${Reset}
+
+$Y Are you ABSOLUTELY SURE you want to run the Compatibility Checker NOW?
+=============================================================================================
+
+
+[DISPLAY WHEN - Booted from USB with no Windows on PC]
+$C=====================================================================================================${Reset}
+$Y                 On2it-WinFixIT${Reset} - WITHOUT a Windows Installation on the PC
+$C=====================================================================================================${Reset}
+You have booted from the USB, WITHOUT a Windows installation on your PC.  
+So let's get it done.  You will be able to:
+
+$Y CHECK Compatibility$Rst of your PC
+      If you are unsure whether this machine can run Windows 11, do this first.
+      The Compatibility Checker compares PROCESSOR, MEMORY, STORAGE and FIRMWARE
+      against Microsoft’s requirements and produces a printable report.
+
+     $W WinPE${Reset},$W Win${Reset}dows$W P${Reset}reinstallation$W E${Reset}nvironment, is all that can be run from a USB. 
+      However, it does not have all the functionality of a fully installed version of Windows.  
+      So, it will not be able to do all the checks that can be done from Windows itself.  
+      Nevertheless, you will get an assessment of the capability of your machine to run Windows 11.
+
+$Y INSTALL Windows 11$Rst
+      Whether you CHECK Compatibility first, or not, you will be able to do either a:
+$W        - FULL Install$Rst   Using Windows 11 enhanced security features, or a
+$W        - BYPASS Install$Rst Skipping Microsoft's requirements.
+      But it provides fuller guidance if you need it.
+
+[PROMPT]Do you want to$Y CHECK Compatibility${Reset} first ?
+[PROMPT]Do you want to$Y INSTALL Windows 11${Reset} ?
+=============================================================================================
+}

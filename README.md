@@ -35,12 +35,14 @@ If Microsoft's automatic download doesn't work for you, the build walks you thro
 **Nothing here is hidden.** Here's exactly what BYPASS Install.iso changes, and what it doesn't:
 
 - `sources\appraiserres.dll` is emptied (zero bytes), not deleted — Setup expects the file to still exist, just unreadable as a real check.
-- Right before Setup runs, WinFixIT sets these registry values — the exact function that does it is public, not buried in a private build: [`Windows 11 BYPASS Registry Keys, Reference Copy.ps1`](Tools/Windows%2011%20BYPASS%20Registry%20Keys%2C%20Reference%20Copy.ps1).
+- Right before Setup runs, WinFixIT sets these registry values — see `Set-Windows11BypassRegistryKeys` in [`Install Windows.ps1`](USB-INSTALL/Scripts/WinFixIT/Install%20Windows.ps1), the real, live source, not a copy that could fall out of step with it:
   - `HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\HwReqChk\HwReqChkVars` → `SQ_SecureBootCapable=TRUE`, `SQ_SecureBootEnabled=TRUE`, `SQ_TpmVersion=2`, `SQ_RamMB=8192`
   - `HKLM\SYSTEM\Setup\MoSetup\AllowUpgradesWithUnsupportedTPMOrCPU` → `1`
 - That's the whole mechanism — both techniques traced from Rufus's own source code, credited above. RAM and storage checks aren't touched at all.
 
 **Your FULL Install.iso download is verified** against Microsoft's own published SHA256 hash before BYPASS Install.iso is built from it — see `Test-FullInstallIsoHash` in [`Build-WindowsISOs.ps1`](Tools/Build-WindowsISOs.ps1). If it doesn't match, you're told plainly and shown how to check it yourself directly against Microsoft's page, not just told to trust it.
+
+**The rest of WinFixIT's own source is here too**, not just the BYPASS mechanism — under [`USB-INSTALL/Scripts`](USB-INSTALL/Scripts), including [DeBloater's text-file-driven UI](USB-INSTALL/Scripts/DeBloater/UI.ps1) and the options list it reads. (A few things are deliberately left out: On2it Software Courses — a separate product WinFixIT merely integrates with — third-party driver binaries, and runtime logs. Everything that's WinFixIT's own code is here.)
 
 **Microsoft's own position:** installing on hardware that doesn't meet their stated requirements means you're not guaranteed to receive updates, including security updates, and Microsoft doesn't support it. That's a real tradeoff, not a technicality — it's yours to weigh, not ours to hide.
 

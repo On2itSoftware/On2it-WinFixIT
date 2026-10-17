@@ -1,0 +1,1698 @@
+[GROUP - PRO Version Only]
+{\rtf1\ansi\fs22
+The \b PRO Version \b0 of the DeBloater includes several advanced features not available in the FREE Version.  
+These features are designed for technicians, system builders, and IT professionals who maintain multiple PCs 
+and require deeper insight, repeatable workflows, and more powerful automation.  \par
+\par
+Current PRO features include:  \par
+   •   Scanning \b Windows STARTUP Programs\b0, \par
+       with Advice for each item found, \par
+   •   Scanning \b INSTALLED Programs\b0, \par
+       with Advice for each program found, \par
+   •   Using \b SAVED Options\b0, created on this or other machines, \par
+   •   Enabling \b Windows Activation\b0, \par
+       using a saved Activation Key (optionally encrypted), \par
+   •   A PRO‑only Button to \b SAVE OPTIONS Used\b0,  \par
+       for reuse across multiple PCs.  \par
+\par
+In addition, several \b Future PRO Features\b0 are planned.  
+These are documented here as an aide‑memoire for ongoing development:  \par
+
+\b Preview Mode (Dry‑Run)\b0 — allows the User to see exactly what would be changed, 
+disabled, or removed before any actions are performed.  
+Useful for high‑risk or unknown systems.  \par
+
+\b Export Task Log to File\b0 — saves the Task Log as a text or RTF file for audit trails, 
+ticketing systems, compliance documentation, or before/after comparisons.  \par
+
+\b Machine Summary Snapshot\b0 — generates a concise overview of the system, 
+including Windows edition, activation status, CPU/RAM, disk usage, number of STARTUP items, 
+and number of INSTALLED Programs.  Helps technicians assess system health before making changes.  \par
+
+\b Scheduled Task Scan\b0 — enumerates all Scheduled Tasks on the system, including OEM, vendor, 
+updater, telemetry, and background maintenance tasks.  
+Provides Advice indicating whether each task is essential, optional, safe to disable, 
+or associated with OEM bloat or unwanted activity.  
+Intended to complement the STARTUP and INSTALLED Program scans.  \par
+
+\b Windows Services Scan\b0 — lists all non‑Microsoft services installed on the system, including OEM, 
+vendor, telemetry, updater, and leftover services from previously removed software.  
+Provides Advice indicating whether each service is essential, optional, or safe to disable.  \par
+
+\b Windows Store Apps Scan\b0 — identifies installed and provisioned AppX packages, including OEM‑bundled 
+apps, trialware, promotional apps, and unnecessary Microsoft Store components.  
+Provides Advice on whether each app is essential, optional, or removable.  \par
+
+\b Browser Extensions Scan\b0 — lists installed extensions for major browsers (Chrome, Edge, Firefox), 
+highlighting OEM‑added items, telemetry extensions, and potentially unwanted add‑ons.  
+Provides Advice on safety, usefulness, and performance impact.  \par
+
+\b Windows Features Scan\b0 — enumerates optional Windows Features (DISM components) enabled on the system, 
+such as legacy components, SMB1, XPS Viewer, and Hyper‑V modules.  
+Provides Advice on whether each feature is required, optional, or unnecessary.  \par
+
+\b Windows Update Status Summary\b0 — reports last successful update, number of pending updates, 
+and whether update components appear healthy.  
+Helps diagnose systems with update failures or stalled update cycles.  \par
+
+\b User Profiles Summary\b0 — lists all local user profiles, including size, age, and last‑used time.  
+Useful for identifying abandoned or oversized profiles that may affect disk usage or login speed.  \par
+
+\b Disk Health Summary (SMART)\b0 — provides a simple health overview of attached storage devices, 
+including SMART status, power‑on hours, and reallocated sector count.  
+Helps determine whether system slowness is hardware‑related.  \par
+
+\b Event Log Quick Scan\b0 — provides a brief count of critical errors, warnings, and repeated issues 
+from key Windows logs.  
+Useful for identifying underlying system problems before cleanup.  \par
+
+\b Silent Mode / Command‑Line Mode\b0 — allows automated or unattended execution using a saved Options Set.  
+Intended for deployment scripts, imaging workflows, and large‑scale rollouts.  \par
+
+\b OEM Bloat Score\b0 — provides a simple numerical score indicating the amount of OEM‑installed software, 
+background updaters, and unnecessary components detected on the system.  
+Useful for comparing machines or demonstrating improvements after cleanup.  \par
+
+\par
+These Future PRO Features are not yet implemented, but are included here to preserve the design intent and 
+long‑term roadmap for the PRO Version.  \par
+
+}
+
+[SELECT - NONE]
+
+[OPTION - Scan Windows STARTUP Programs]
+{\rtf1\ansi\fs22
+This Option scans all Windows STARTUP locations on \b this machine \b0 and builds a complete list of every program, 
+helper, updater, scheduler, and background component that runs when Windows starts. \par
+\par
+Many systems accumulate \b far too many \b0 startup items over time.  These can slow down boot time, reduce performance, 
+and make Windows feel sluggish.  Because every PC is different, the STARTUP list must be scanned \b on each machine \b0 
+to identify what is actually present. \par
+\par
+The PRO Version consults On2it Software's online Knowledge Base to obtain \b clear, plain‑English Advice \b0 for each item it finds.  
+This includes: \par
+\b   •  \b0What the program does, \par
+\b   •  \b0Whether it is essential or optional, \par
+\b   •  \b0Whether it is safe to disable, \par
+\b   •  \b0Whether it is known to cause slowdowns, \par
+\b   •  \b0Whether it is associated with OEM bloat, trialware, or background updaters. \par
+\par
+If an item is \b not yet \b0 in the Knowledge Base, it uses AI to generate new Advice automatically.  
+These new entries are \b reviewed manually from time to time \b0 to ensure the Advice remains accurate and appropriate. \par
+\par
+This scan appends a new Group, with Options, and Advice to the bottom of the left-hand panel, based on what it finds on your machine.  
+So that you can make informed decisions about what YOU want to run at startup. \par
+}
+
+
+[OPTION - Scan INSTALLED Programs]
+{\rtf1\ansi\fs22
+This Option scans all standard Windows locations where INSTALLED Programs are recorded on \b this machine\b0.  
+It builds a complete list of applications, utilities, helpers, updaters, OEM bundles, and background components 
+that have been installed over time. \par
+\par
+Most systems accumulate \b far too many \b0 installed programs.  These can consume disk space, add background tasks, 
+slow down updates, and introduce unnecessary services.  Because every PC is different, the INSTALLED Programs list must be scanned 
+\b on each machine \b0 to identify what is actually present. \par
+\par
+The PRO Version consults On2it Software's online Knowledge Base to obtain \b clear, plain‑English Advice \b0 for each program it finds.  
+This includes: \par
+\b   •  \b0What the program does, \par
+\b   •  \b0Whether it is essential or optional, \par
+\b   •  \b0Whether it is safe to remove, \par
+\b   •  \b0Whether it is known to cause slowdowns or background activity, \par
+\b   •  \b0Whether it is associated with OEM bloat, trialware, or unwanted add‑ons. \par
+\par
+If a program is \b not yet \b0 in the Knowledge Base, it uses AI to generate new Advice automatically.  
+These new entries are \b reviewed manually from time to time \b0 to ensure the Advice remains accurate and appropriate. \par
+\par
+This scan appends a new Group, with Options, and Advice to the bottom of the left‑hand panel, based on what it finds on your machine, 
+so that you can make informed decisions about what YOU want to keep installed. \par
+}
+
+
+[OPTION - Use Options SAVED previously]
+{\rtf1\ansi\fs22
+This Option loads a previously SAVED set of Groups and Options created on this or another machine.  
+These saved selections allow you to reuse a known‑good configuration without having to re‑select everything manually. \par
+\par
+Saved Option Sets are especially useful when you maintain multiple PCs, or when you want to apply the same decisions 
+across several machines.  They preserve your earlier choices, including which STARTUP items you disabled and which 
+INSTALLED Programs you removed or kept. \par
+\par
+Because every machine is different, some saved Options may not apply to the current system.  
+When this happens, the PRO Version keeps your saved selections but simply ignores any items that do not exist on this machine.  
+Nothing is lost, and nothing is overwritten. \par
+\par
+Using 'SAVED Options' reapplies your previous choices to any matching Groups and Options already shown in the left‑hand panel.  
+Including a Windows Activation Key, if one was saved earlier (encrypted if a Password was specified). \par
+}
+
+[OPTION - Enable Activations]
+{\rtf1\ansi\fs22
+When selected without a set of previously saved Options specified, 
+a Dialog Box will be displayed at the start of a 'PERFORM Selected Operations' run, 
+which enables you to specify the:  \par
+\b    •   Activation Key,\b0 \par
+\b    •   Encryption Password.\b0 \par
+These enable the same Windows Activation ID to be used to activate multiple PCs using the same 'SAVED Options' Set.  \par
+\par
+If Activation is Enabled a Key MUST be specified or the run will not proceed. \par
+\par 
+If an Encryption Password is specified the Activation Key will be encrypted with the Password when the Options are saved.  
+If NO Password is specified the Activation Key will NOT be encrypted.  \par
+\par
+When Activation is attempted using a set of 'SAVED Options', the User will be prompted for the Password (if one was specified) 
+so that the Activation Key can be decrypted.  \par
+}
+
+
+===================================================================================================================================
+[GROUP - Major Windows Features]
+{\rtf1\ansi\fs22
+\par\b\fs24 This group contains Microsoft's most intrusive and persistent features.\b0\fs22\par
+Your choices here will shape how much control you retain over your system - especially around subscriptions, cloud sync, and AI integration.\par
+\par
+They will be installed by Microsoft, whether you want them or not.  Left in place, they can confuse users by duplicating functionality already provided by other apps. The choices you make here will shape what you need to do in later groups, so review our advice carefully before proceeding.\par
+\par
+}
+[SELECT - ALL]
+
+[OPTION - Remove Microsoft 365]
+{\rtf1\ansi\fs22
+\b0 Microsoft 365 is Microsoft's subscription version of Microsoft Office. In many cases you can buy a perpetual licence for both Office Professional 2024 and Windows 11 (and related apps) for a fraction of the annual subscription cost of Microsoft 365 alone.\par
+\par
+\b Pros \b0  The advantage of Microsoft 365 is that being a subscription version, it gets the latest features before the desktop version. \par
+\par
+\b Cons \b0  That being said, Office Professional 2024 is so fully-featured that it will do virtually everything that everyone wants anyway. It is the version used by most major companies. So why would anyone want to pay more for an annual subscription than they'd pay for a perpetual licence? \par
+\par
+\b Recommendation \b0  It is for that reason that we cannot recommend that you subscribe to Microsoft 365. \par
+\par
+Microsoft will keep on trying to enrol you.  We block them in such a way that HOPEFULLY you will not see their perpetual nagging, either. 
+(You won't, unless Microsoft changes something.)  \par
+}
+[ALTERNATIVE - Please INSTALL Microsoft 365 - MANUALLY]
+{\rtf1\ansi\fs22
+To install Microsoft 365 manually:\par
+1. Visit https://www.office.com and sign in with your Microsoft account.\par
+2. Click on 'Install Office' and follow the prompts to download and install the latest version.\par
+3. If you have a product key, you can redeem it at https://setup.office.com.\par
+4. For more help, see the official Microsoft support site.\par
+\par
+Note: This tool does not automate the installation of Microsoft 365.   You must install it manually using the steps above.\par
+}
+
+[OPTION - Remove OneDrive]
+{\rtf1\ansi\fs22
+OneDrive is Microsoft's 'Cloud' Service that will automatically replicate your files to their servers on the Internet.  
+They will \b try \b0 to convince you that it is an automatic backup - \b it is NOT! \b0   
+Any mistakes you make in your copy will be replicated to their copy.  
+If you accidentally delete your copy, their copy gets deleted too.\par
+\par
+OneDrive is useful if you want more than one device and/or user to have access to the same file.  
+But even then, you still need a good backup system that keeps multiple versions offline - 
+to protect you from accidental file deletions and unwanted changes.  \par
+\par
+Microsoft will store your files for free up to 5 GB; beyond that they will charge you.  
+OneDrive is also very intrusive on your day-to-day operations, stealing files and hiding them in the cloud.  
+For most users, OneDrive causes more confusion than benefit.  \par
+\par
+A true backup keeps multiple historical versions stored offline, where they cannot be changed by accident.  
+If you want a good backup that keeps your files on a separate device, 
+then we strongly recommend that you investigate third party backup tools such as 'EaseUS ToDo Backup', 
+or many other FREE backup applications. \par
+\par 
+Other cloud services such as DropBox and Google Drive are also worth you considering, as an alternative to OneDrive.
+}
+
+[ALTERNATIVE - Please INSTALL OneDrive - MANUALLY]
+{\rtf1\ansi\fs22
+OneDrive is Microsoft's 'Cloud' Service that will automatically replicate your files to their servers on the Internet.  
+They will \b try \b0 to convince you that it is an automatic backup - \b it is NOT! \b0   
+Any mistakes you make in your copy will be replicated to their copy.  
+If you accidentally delete your copy, their copy gets deleted too.\par
+\par
+It is therefore our earnest recommendation\b not to use it\b0 . \par
+\par
+However, you have chosen not to remove it.  Since it is not already on your system, you have been given the option to INSTALL it instead.  \par
+\par
+To install OneDrive manually:
+\par
+  1. Visit https://www.microsoft.com/en-us/microsoft-365/onedrive/download and click "Download." \par
+  2. Run the downloaded installer and follow the on-screen instructions. \par
+  3. Once installed, sign in with your Microsoft account to set up OneDrive. \par
+\Par
+For more help, see the official Microsoft OneDrive support: https://support.microsoft.com/onedrive
+\par
+Note: This tool does not automate the installation of OneDrive.  You must install it manually using the steps above. \par
+}
+
+[OPTION - Remove Microsoft Teams]
+{\rtf1\ansi\fs22\b0
+Teams is Microsoft's collaboration tool for chat, meetings, and file sharing.  
+It's useful in corporate or school environments where everyone uses it.\par
+\par
+For most home users, it adds little value and duplicates features already available in Outlook, Skype, or other apps.  
+That's why we recommend removing it unless your workplace requires it.\par
+\par
+}
+
+[ALTERNATIVE - Please INSTALL Microsoft Teams - MANUALLY]
+{\rtf1\ansi\fs22\b0
+Teams is Microsoft's collaboration tool for chat, meetings, and file sharing.  It's useful in corporate or school environments where everyone uses it.\par
+\par
+For most home users, it adds little value and duplicates features already available in Outlook, Skype, or other apps. That's why we recommend removing it unless your workplace requires it.\par
+\par
+However, you have chosen NOT to remove it.  So, presumably you want it.  
+To install Microsoft Teams:\par
+1.  Visit https://www.microsoft.com/en/microsoft-teams/download-app and click "Download Teams."\par
+2.  Run the downloaded installer and follow the on-screen instructions.\par
+3.  Once installed, sign in with your Microsoft account or organization credentials to set up Teams.\par
+\par
+For more help, see the official Microsoft Teams support: https://support.microsoft.com/teams\par
+\par
+Note: This tool does not automate the installation of Microsoft Teams.  You must install it manually using the steps above.\par
+}
+
+[OPTION - Turn BitLocker OFF]
+{\rtf1\ansi\fs22\b0
+BitLocker encrypts your drives so that if you lose your PC, or someone steals it, they cannot access the data stored on them. However, it does not protect your information against hackers, malware, or anyone who already knows your Windows password and can log in normally.\par
+\par
+For most home users, BitLocker provides limited real-world benefit and can sometimes cause inconvenience, especially if hardware changes or boot issues occur. Unless you have highly sensitive data that must remain protected even if the device is physically stolen, BitLocker is often unnecessary.\par
+\par
+If this item is \b checked \b0 and BitLocker is currently \b ON\b0, we will turn it off immediately. Windows will then decrypt your drive in the background — this can take up to several hours on a large drive. Your PC remains fully usable throughout.\par
+\par
+If you un-check this item, your system will not be altered.\par
+\b    •   \b0 If BitLocker is currently ON, it will remain ON. \par
+\b    •   \b0 If BitLocker is currently OFF, it will remain OFF.\par
+\par
+If BitLocker is currently OFF and you want it ON, you will HAVE to enable it through Windows itself,
+as your whole drive will have to be encrypted.\par
+\par
+\b Important: \b0 Windows 11 can silently re-enable Device Encryption after updates or when signed in with a Microsoft Account — without warning you. To permanently block this, we also set a Windows Registry key that prevents Windows from doing so without your knowledge.\par
+}
+
+[OPTION - KEEP CoPilot]
+{\rtf1\ansi\fs22
+CoPilot is Microsoft's AI assistant, in Windows 11. \b0 
+It can summarise information, answer questions, and help with tasks.  
+We recommend keeping it, as it's becoming a core part of Windows.\par
+\par
+\b Without CoPilot, this system would not exist.\b0\par
+For, despite over 50 years' experience developing Systems, the author had no knowledge of: \par
+\b    •   \b0 Windows internals (necessary to make it possible), or \par
+\b    •   \b0 Powershell, used to develop it.  \par
+CoPilot provided both - generating over 13,000 lines of code, in the process.  \par
+\par
+So, CoPilot provided both the knowledge and ability to \par
+'sort Windows 11 out' - even to the point of removing CoPilot.  \par
+Who says AI's not useful?  \par
+\par
+But, by the end of the project, he graduated to\b Claude\b0, as it got too complex for CoPilot to handle.  
+}
+
+[ALTERNATIVE - Remove CoPilot]
+{\rtf1\ansi\fs22
+This option removes \b Windows CoPilot\b0 - the AI assistant built into Windows 11 itself.  
+If you select this option, CoPilot will be removed from your system.  If you want it back you will 
+have to re-install it manually.  \par
+\par
+\b What about CoPilot everywhere else?\b0\par
+Microsoft has embedded CoPilot throughout its products - in Edge, in Bing, 
+in the Microsoft 365 versions of Word, Excel and Outlook, and as a standalone app.  
+If you feel that Microsoft has been somewhat overzealous in its enthusiasm 
+for AI assistants, you are not alone.\par
+\par
+However, disabling CoPilot in Edge, Bing, or Microsoft 365 requires either 
+account-level changes or administrator access to a Microsoft 365 tenant - 
+both of which are beyond the scope of this tool.  
+For those, you will need to visit your Microsoft account settings directly.\par
+}
+
+[ALTERNATIVE - Please INSTALL CoPilot - MANUALLY]
+{\rtf1\ansi\fs22
+To install or enable Microsoft CoPilot manually:\par
+\par
+  1. Make sure your Windows 11 is up to date. \par
+  2. Go to \b Settings > Windows Update \b0 and install all available updates.\par
+     CoPilot is integrated into recent versions of Windows 11. \par
+     If you do not see the CoPilot icon on your Taskbar, right-click the Taskbar and select \par
+    "Show CoPilot (preview)" or enable it in \b Settings > Personalization > Taskbar\b0.\par
+  3. If CoPilot is still unavailable, your device may not meet the hardware requirements \par
+     or the feature may not be rolled out to your region yet. \Par
+     See the official Microsoft CoPilot FAQ for details: \par
+     Download it from:
+     https://apps.microsoft.com/detail/xp9cxngppj97xx?hl=en-GB&gl=US \par
+     or visit the Microsoft Store.
+\par
+For more help, visit the official Microsoft CoPilot support page: https://support.microsoft.com/copilot\par
+\par
+\b Note:\b0 This tool does not automate the installation or activation of Microsoft CoPilot. You must enable it manually using the steps above.\par
+}
+
+[OPTION - KEEP Recall]
+{\rtf1\ansi\fs22
+\b One of the biggest frustrations when using a computer is finding something interesting
+ - only to forget where you saw it. \b0  Microsoft intend to solve this problem with Windows Recall.  \par
+Recall automatically captures snapshots of your screen at periodic intervals.  \par
+\par
+When it was first announced many users expressed concern about potential privacy problems.  
+Microsoft withdrew the product and addressed these concerns, by ensuring all data is 
+\b encrypted \b0 and \b stored locally\b0 .  
+So, no data is uploaded to the cloud.  \par
+\par
+Recall enables users to search and interact with previous content using natural language queries, 
+enhancing productivity and memory recall.\par
+\par
+Think of Recall as a visual AI-searchable Browser History.  But instead of tracking only web activity, 
+Recall extends to everything you do on your PC, making it easier to find and re-engage with past content.\par
+\par
+It is exclusive to the latest so-called AI PCs, equipped with an NPU (Neural Processing Unit).  
+It is now disabled by default, and users must actively enable it themselves.\par
+\par
+So, if you are lucky enough to have it on your PC; keep it, try it.  
+If in the end you don't like it, disable it.\par
+}
+[ALTERNATIVE - CANNOT INSTALL Recall]
+{\rtf1\ansi\fs22
+\b One of the biggest frustrations when using a computer is finding something interesting - only to forget where you saw it.  
+\b0 Microsoft aims to solve this problem with Windows Recall.  \par
+\par 
+Unfortunately, Recall is only available on CoPilot+ PCs with a supported Neural Processing Unit (NPU) and at least 40 TOPS of Processing Power.  
+This computer does not have the required hardware, so Recall cannot be installed or enabled. \par
+\par
+Recall automatically captures snapshots of your screen at periodic intervals.  
+They are \b encrypted \b0 and \b stored locally\b0, ensuring that no data is uploaded to the cloud.  
+Recall enables users to search and interact with previous content using natural language queries, 
+enhancing productivity and memory recall.\par
+\par
+Think of it as a visual AI-searchable Browser History.  But instead of tracking only web activity, Recall extends to everything you do on your PC, making it easier to find and re-engage with past content.\par
+\par
+You cannot install Recall on this PC.  So, you may safely ignore this option.
+}
+[ALTERNATIVE - Please INSTALL Recall - MANUALLY]
+{\rtf1\ansi\fs22
+To install or enable Windows Recall manually:\par
+1.  Ensure your PC meets the hardware requirements: \par
+    - a CoPilot+ PC with a supported Neural Processing Unit (NPU) and \par
+    - at least 40 TOPS of processing power.\par
+2.  Make sure Windows 11 is fully updated. Go to Settings > Windows Update and install all available updates.\par
+3.  If your device is eligible, open Settings > Privacy & security > Recall & snapshots.\par
+4.  Follow the prompts to enable Recall. You may need to sign in with your Microsoft account and accept additional terms.\par
+5.  For more help, see the official Microsoft Recall support: 
+    https://support.microsoft.com/windows/windows-recall-faq-7e3c2b1a-2b7e-4b7a-8c2e-2e8e6b6c1e5b\par
+\par
+\b Note: \b0  This tool does not automate the installation or activation of Windows Recall. You must enable it manually using the steps above. If your PC does not meet the requirements, Recall will not be available.\par
+} 
+
+=======================================================================
+
+[GROUP - Microsoft Accounts]
+{\rtf1\ansi\fs22
+\b Microsoft make it almost impossible to install Windows 11 without setting up a Microsoft Account. \b0  
+A Microsoft Account connects you to cloud services, subscriptions, and sync features.  However, many people prefer a Local Account for privacy and simplicity.\par
+\par
+So, once you have installed Windows 11, you can setup a Local Account, and even delete the Microsoft Account.  
+Full step-by-step instructions are in the User Manual on your USB.\par
+\par
+Alternatively, you can also use the Options alongside, and we'll do it for you.\par
+}
+[SELECT - NONE]
+
+[OPTION - Create and Sign in with a Local Account]
+{\rtf1\ansi\fs22
+This will create a new Local Account with Administrator rights. \par
+You will no longer need to use a Microsoft Account to log in. \Par
+Your Microsoft Account will still be there, in case you want to use it - unless you use the next option.  \par
+\par
+\b Pros: \b0 \par
+\b    •   \b0 Greater privacy: your files and settings stay on this PC.\par
+\b    •   \b0 No nagging about subscriptions or OneDrive.\par
+\b    •   \b0 Simpler login, no internet required.\par
+\b    •   \b0 Full Administrator rights: you can install software \par
+   and manage system settings.\par
+   \par
+\b Cons: \b0 \par
+\b    •   \b0 You lose automatic sync of settings and OneDrive integration.\par
+\b    •   \b0 Microsoft Store purchases and some features may require \par
+   a Microsoft Account.\par
+\par
+}
+
+[OPTION - Remove Microsoft Account entirely]
+{\rtf1\ansi\fs22\b0
+This will disable ALL Microsoft Account users on this PC once a Local Account is created. 
+Their local profiles will be removed, and they will no longer be able to be used to sign in on this PC.  
+They will ONLY be able to log in with their Local Account.\par
+\par
+\b \fs20 Pros: \b0 \fs22\par
+\b    •   \b0 Maximum privacy: no Microsoft Account linked to this PC.\par
+\b    •   \b0 No cloud tie-ins or subscription prompts.\par
+ \par
+\b\fs20 Cons:\b0\fs22\par
+\b    •   \b0 You cannot use Microsoft Store purchases, Xbox integration,\par
+     or OneDrive.\par
+\b    •   \b0 Some apps may require you to sign in again separately.\par
+\b    •   \b0 You may not be able to share data with others, or yourself\par
+     on other devices, unless you install some other Cloud service.\par
+\b    •   \b0 The Microsoft Account itself is NOT deleted in the cloud;\par
+     it can be re-added manually later if desired.\par
+\b    •   \b0 You must set up recovery questions, on this PC \par
+     to regain access - if you forget your password.\par
+}
+===============================================================================================================
+
+[GROUP - Remove Unwanted Apps]
+{\rtf1\ansi\fs22
+\b These options target Microsoft apps that are often installed with Windows 11.  
+\b0 They either overlap with desktop Office tools, are specialist developer environments, 
+or are very rarely used these days.  \par
+\par
+Removing them reduces confusion and streamlines your system.\par
+}
+
+[SELECT - ALL]
+
+[OPTION - Remove Outlook for Windows]
+{\rtf1\ansi\fs22\b0
+This is Microsoft's new Outlook client that replaced \par
+\i Mail & Calendar \i0 . It is installed with Windows 11.\Par
+\par
+If you already use \i Microsoft 365 \i0, the full desktop Outlook \par
+(often called \i Outlook Classic \i0 ), or even another mail client, you don't need this too.  
+It will only cause you confusion and grief!\par
+}
+[ALTERNATIVE - Please INSTALL Outlook for Windows - MANUALLY]
+{\rtf1\ansi\fs22\b0
+You have chosen not to remove Outlook for windows, but because it is not current installed 
+on your system, you have to INSTALL it instead. \par
+\par
+\b To do so, please: \b0\Par
+1.  Open the Microsoft Store from your Start Menu.\par
+2.  In the Store’s search bar, type "Outlook for Windows" and press Enter.\par
+3.  Click on "Outlook (new)" or "Outlook for Windows" in the search results.\par
+4.  Click "Get" or "Install" and follow the on-screen instructions to download and install Outlook.\par
+5.  Once installed, open Outlook and sign in with your Microsoft account to complete setup.\par
+\par
+For more help, see the official Microsoft Outlook support: https://support.microsoft.com/outlook\par
+\par
+\b Note: \b0 This tool does not automate the installation of Outlook for Windows. You must install it manually using the steps above.\par
+}
+
+
+[OPTION - Remove Xbox]
+{\rtf1\ansi\fs22
+The Xbox app connects your PC to Microsoft's gaming ecosystem, providing access to Xbox Game Pass, 
+cloud gaming, and social features.  If you do not play Xbox games or use Game Pass, 
+this app serves no purpose on your PC.\par
+\par
+\b What gets removed:\b0\par
+\b    •   \b0 The Xbox app itself.\par
+\b    •   \b0 Xbox Game Bar — the overlay accessed with \b Win + G\b0 .\par
+\b    •   \b0 Xbox Game Overlay and related components.\par
+\b    •   \b0 Xbox Speech to Text Overlay.\par
+\b    •   \b0 Xbox Identity Provider.\par
+\par
+\b Note:\b0  The \b Xbox Game Callable UI\b0  component is a protected Windows system 
+component and cannot be removed.  This does not affect normal system operation.\par
+\par
+\b After removal:\b0  If you start a game and see a popup about \b ms-gamingoverlay\b0 , 
+this is Windows trying to launch the Game Bar.  
+This tool disables that automatically — you should not see this popup.\par
+}
+
+[ALTERNATIVE - Please INSTALL Xbox - MANUALLY]
+{\rtf1\ansi\fs22
+To reinstall the Xbox app:\par
+\par
+\b    •   \b0 Open the \b Microsoft Store\b0 .\par
+\b    •   \b0 Search for \b Xbox\b0 .\par
+\b    •   \b0 Click \b Install\b0 .\par
+\par
+This will reinstall the Xbox app and Game Bar components.\par
+\par
+Alternatively, visit \b https://www.xbox.com/en-GB/apps/xbox-app-for-pc\b0  
+for the direct download link.\par
+}
+
+[OPTION - KEEP Solitaire]
+{\rtf1\ansi\fs22
+Microsoft Solitaire Collection is one of the most popular games included with Windows 11.  
+It includes classic Solitaire, Spider, FreeCell, Pyramid, and TriPeaks — all free to play.\par
+\par
+\b Did you know?\b0  Solitaire was originally included with Windows 3.0 back in 1990 — 
+not just for entertainment, but to teach people how to use a mouse!  
+Dragging and dropping cards is excellent practice for anyone still getting used to 
+controlling a mouse precisely.  Over 35 years later, it is still doing its job beautifully.\par
+\par
+If you enjoy card games or are still getting comfortable with the mouse, 
+we recommend keeping it.  
+If you never play it, removing it will free up a small amount of disk space.\par
+\par
+\b Note:\b0  If you remove Solitaire and change your mind, 
+you can reinstall it for free from the \b Microsoft Store\b0 .\par
+}
+
+[ALTERNATIVE - Please INSTALL Solitaire - MANUALLY]
+{\rtf1\ansi\fs22
+Microsoft Solitaire Collection is not currently installed on your PC.\par
+\par
+To reinstall it:\par
+\b    •   \b0 Open the \b Microsoft Store\b0 .\par
+\b    •   \b0 Search for \b Microsoft Solitaire Collection\b0 .\par
+\b    •   \b0 Click \b Install\b0 .\par
+\par
+Alternatively, visit \b https://apps.microsoft.com/detail/9wzdncrfhwd2?hl=en-GB&gl=AU\b0 
+for the direct download link.\par
+\par
+It is completely free and will be reinstalled within a few minutes.\par
+}
+
+==============================================================================================================
+
+
+[GROUP - Select Default Browser]
+{\rtf1\ansi\fs22
+All modern browsers are fast, secure, and capable - the differences come down to privacy, 
+ecosystem integration, and personal preference.  
+The real truth of the matter, is that it probably doesn't matter which you use, these days
+ as conventional searches are becoming outpaced by AI.  
+But because some people are so passionate about it, 
+we've offered you a choice of the World's most popular Browsers.  \par
+\par
+Simply:  \par
+\b    • INSTALL \b0 as many Browsers as you want.  \par
+\b    • SELECT  \b0 any installer Browser to use as your Default.  \par
+The selected Browser will then be displayed as:  \par
+\b    • <Browser Name> SELECTED \b0 \par
+\par
+\b Please Note: \b0  There is no facility to uninstall a browser in the DeBloater.  \par
+To \b UNINSTALL a Browser - MANUALLY \b0  use: \par
+   \b Settings > Apps > Installed Apps \b0 Then: \par
+      1. \b Scroll Down \b0 - to find the Browser to be uninstalled \par
+      2. Click \b More Options \b0 It looks like ... on the right  \par
+      3. Click \b UNINSTALL \b0 \par
+}
+
+[SELECT - ALL]
+
+[OPTION - Microsoft Edge SELECTED]
+{\rtf1\ansi\fs22
+\b Microsoft Edge \b0 is the built‑in browser that comes with Windows 11.  
+It is based on the same Chromium engine used by Google Chrome, so it is fast, 
+compatible with virtually all websites, and supports Chrome extensions.\par
+\par
+\b Pros:\b0\par
+\b    •   \b0 Already installed - no download needed.\par
+\b    •   \b0 Deeply integrated with Windows 11, including PDF viewing, 
+   Windows Search, and the Start Menu.\par
+\b    •   \b0 Supports all Chrome extensions from the Chrome Web Store.\par
+\b    •   \b0 Built‑in features include Collections, vertical tabs, 
+   a coupon finder, and a built‑in screenshot tool.\par
+\b    •   \b0 Microsoft regularly updates it for security.\par
+\par
+\b Cons:\b0\par
+\b    •   \b0 Collects usage data for Microsoft by default.\par
+\b    •   \b0 Pushes Microsoft services such as Bing and MSN News.\par
+\b    •   \b0 Can feel intrusive with frequent prompts to use Microsoft features.\par
+\par
+\b Our Recommendation:\b0  Edge is a capable browser and a perfectly good choice 
+if you are happy with Microsoft's ecosystem.  If privacy is a priority, 
+consider Brave or Firefox instead.\par
+}
+
+[OPTION - INSTALL Google Chrome]
+{\rtf1\ansi\fs22
+\b Google Chrome \b0 is the world's most popular browser, used by over 60\% of internet users.  
+It is fast, reliable, and has the largest library of extensions of any browser.\par
+\par
+\b Pros:\b0\par
+\b    •   \b0 Fastest JavaScript performance of any major browser.\par
+\b    •   \b0 Enormous library of extensions from the Chrome Web Store.\par
+\b    •   \b0 Excellent compatibility - virtually every website is tested on Chrome.\par
+\b    •   \b0 Seamless integration with Google services such as Gmail, 
+   Drive, and Google Docs.\par
+\b    •   \b0 Syncs bookmarks, history, and settings across all your devices.\par
+\par
+\b Cons:\b0\par
+\b    •   \b0 Collects significant usage data for Google's advertising platform.\par
+\b    •   \b0 Can be memory‑hungry with many tabs open.\par
+\b    •   \b0 Requires a Google account to get the most out of it.\par
+\par
+\b Our Recommendation:\b0  Chrome is an excellent all‑rounder, 
+but if privacy concerns you, consider Brave - it is based on the same engine 
+but blocks tracking by default.\par
+}
+
+[OPTION - INSTALL Firefox]
+{\rtf1\ansi\fs22
+\b Firefox \b0 is developed by Mozilla, a non‑profit organisation whose mission is to keep 
+the internet open and private.  It is the only major browser not based on Google's Chromium engine,  
+giving it a genuinely independent approach to web standards and privacy.\par
+\par
+\b Pros:\b0\par
+\b    •   \b0 Strong privacy by default - blocks many trackers out of the box.\par
+\b    •   \b0 Highly customisable with a large library of extensions.\par
+\b    •   \b0 Not owned by Google or Microsoft - independent of Big Tech ecosystems.\par
+\b    •   \b0 Excellent developer tools.\par
+\b    •   \b0 Open source - its code is publicly auditable.\par
+\par
+\b Cons:\b0\par
+\b    •   \b0 Occasionally slower than Chrome or Edge on some JavaScript benchmarks.\par
+\b    •   \b0 A small number of websites are optimised for Chrome only 
+   and may behave differently in Firefox.\par
+\par
+\b Our Recommendation:\b0  Firefox is our top recommendation for users who 
+prioritise privacy and prefer not to be part of Google's or Microsoft's ecosystem.\par
+}
+
+[OPTION - INSTALL Brave]
+{\rtf1\ansi\fs22
+\b Brave \b0 is a privacy‑focused browser built on the same Chromium engine as Chrome and Edge.  
+It blocks advertisements and trackers by default - without needing any extensions - 
+making it significantly faster on ad‑heavy websites.\par
+\par
+\b Pros:\b0\par
+\b    •   \b0 Blocks ads and trackers automatically - no extensions needed.\par
+\b    •   \b0 Noticeably faster page loads on many websites as a result.\par
+\b    •   \b0 Compatible with all Chrome extensions.\par
+\b    •   \b0 Built‑in VPN and Tor private browsing mode for maximum privacy.\par
+\b    •   \b0 Does not sell your data to advertisers.\par
+\par
+\b Cons:\b0\par
+\b    •   \b0 Has its own optional advertising system (\b Brave Rewards\b0) 
+   which some users find philosophically at odds with its privacy stance - 
+   though it is entirely opt‑in and easily ignored.\par
+\b    •   \b0 Less well known, so occasional websites may behave unexpectedly.\par
+\par
+\b Our Recommendation:\b0  Brave is our top recommendation for users who want 
+Chrome's compatibility and extension library, but with privacy built in from the start.  \par
+}
+
+[OPTION - INSTALL Opera]
+{\rtf1\ansi\fs22
+\b Opera \b0 is one of the oldest browsers still in active development, now also based on Chromium.  
+It has a distinctive sidebar interface and includes several built‑in features 
+that other browsers require extensions for.\par
+\par
+\b Pros:\b0\par
+\b    •   \b0 Built‑in free VPN - no extension or account needed.\par
+\b    •   \b0 Built‑in ad blocker.\par
+\b    •   \b0 Unique sidebar with quick access to WhatsApp, Messenger, 
+   Instagram, and other services.\par
+\b    •   \b0 Battery saver mode for laptops.\par
+\b    •   \b0 Compatible with Chrome extensions.\par
+\par
+\b Cons:\b0\par
+\b    •   \b0 Owned by a Chinese consortium since 2016 - 
+   which raises data privacy concerns for some users.\par
+\b    •   \b0 The built‑in VPN routes through Opera's own servers, 
+   so it is not truly private in the way a paid VPN is.\par
+\b    •   \b0 Smaller user base means less community support.\par
+\par
+\b Our Recommendation:\b0  Opera is worth considering if you like its unique sidebar 
+and built‑in tools.  However, be aware of its ownership if data privacy is important to you.\par
+}
+======================================================================================================================
+ 
+
+[GROUP - Tidy the Start Menu]
+{\rtf1\ansi\fs22
+\b Keep it clean and professional. 
+\b0 Windows 11 puts a lot of minor Apps into the Start Menu - in case you need them.  
+Removing them reduces confusion and streamlines your system.  \par
+\par
+KEEP the ones you are likely to use regularly and remove the rest.  
+Our 'Recommended Options' are shown.  \par
+\par
+\b Please Note: \b0 Microsoft’s security does not permit anything to be pinned to, 
+or removed from the Start Menu, unless it is done by YOU, the User, 
+through the standard Windows interface.  Therefore, we cannot do it for you.  
+We can offer Advice on which Apps to KEEP or Remove, but you will have to do it for yourself.  \par
+\par
+Simply point at any Option you are interested in.  
+You will then, receive full instructions on how to do it yourself, here in the Advice Panel.  
+This can then be printed, one at a time, or appended to you own WORD document, for later attention.  
+}
+
+[SELECT - DIY ONLY]
+
+[OPTION - Remove Microsoft 365 PIN from the Start Menu]
+{\rtf1\ansi\fs22
+\b0 Microsoft 365 is Microsoft's subscription-based Office suite.  
+If you already use a perpetual version of Office (like Office 2024), 
+or prefer free alternatives like LibreOffice, 
+you don't need this Shortcut cluttering your Start Menu.  \par
+\par
+To \b UNPIN \b0 an App from the Start Menu:  \par
+•	Open the \b Start Menu \b0 , \par
+•	\b Right-click \b0 the App, \par
+•	Select \b Unpin from Start\b0 . \par
+\par
+}
+
+[OPTION - Remove Xbox PIN from the Start Menu]
+{\rtf1\ansi\fs22
+\b0 The Xbox app connects your PC to Microsoft's gaming ecosystem. If you don't play Xbox games or use Game Pass, this app serves no purpose and can be unpinneded from the Start Menu.\par
+\par
+To \b UNPIN \b0 an App from the Start Menu:  \par
+•	Open the \b Start Menu \b0 , \par
+•	\b Right-click \b0 the App, \par
+•	Select \b Unpin from Start\b0 . \par
+}
+
+[OPTION - KEEP Solitaire pinned to Start Menu]
+{\rtf1\ansi\fs22
+\b0 Solitaire is a casual game bundled with Windows. If you don't use your PC for gaming or prefer a cleaner Start Menu, you can safely Unpin it from the Start Menu.\par
+\par
+Obviously, to \b KEEP \b0 an App that is already in the Start Menu, you don't have to do a thing.  \par
+\par
+If you don't want to keep an App that is already there, you can \b UNPIN \b0 it.  So: \par
+•	Open the \b Start Menu \b0 , \par
+•	\b Right-click \b0 the App, \par
+•	Select \b Unpin from Start\b0 . \par
+}
+[OPTION - Remove LinkedIn PIN from the Start Menu]
+{\rtf1\ansi\fs22
+\b0 LinkedIn is Microsoft's professional networking platform. Unless you actively use it for job hunting or business connections, this shortcut is unnecessary.  So, Unpin it from the Start Menu.\par
+\par
+To \b UNPIN \b0 an App from the Start Menu:  \par
+•	Open the \b Start Menu \b0 , \par
+•	\b Right-click \b0 the App, \par
+•	Select \b Unpin from Start\b0 . \par
+}
+
+[OPTION - KEEP Outlook pinned to Start Menu]
+{\rtf1\ansi\fs22
+\b0 Outlook is Microsoft's email and calendar client.  
+If you use it to manage your communications, appointments, or contacts, 
+it's worth keeping in easy reach.  \par
+\par
+But there is no point in pinning it to the Start Menu, 
+if you intend to keep it pinned to the Taskbar, as is recommended below. \par
+\par
+Obviously, to \b KEEP \b0 an App that is already in the Start Menu, you don't have to do a thing.  \par
+\par
+If you don't want to keep an App that is already there, you can \b UNPIN \b0 it.  So: \par
+•	Open the \b Start Menu \b0 , \par
+•	\b Right-click \b0 the App, \par
+•	Select \b Unpin from Start\b0 . \par
+}
+
+[OPTION - KEEP File Explorer pinned to Start Menu]
+{\rtf1\ansi\fs22
+\b0 File Explorer is essential for navigating folders, managing files, and accessing drives. It's a core part of Windows - keep it pinned.\par
+\par
+If you intend to keep File Manager in the Taskbar, as is recommended alongside, then you probably don't need it in the Start Menu as well.\par
+\par
+Obviously, to \b KEEP \b0 an App that is already in the Start Menu, you don't have to do a thing.  \par
+\par
+If you don't want to keep an App that is already there, you can \b UNPIN \b0 it.  So: \par
+•	Open the \b Start Menu \b0 , \par
+•	\b Right-click \b0 the App, \par
+•	Select \b Unpin from Start\b0 . \par
+}
+[OPTION - KEEP Calculator pinned to Start Menu]
+{\rtf1\ansi\fs22
+\b0 The Calculator app is fast, lightweight, and handy for everyday maths, currency conversions, and even scientific calculations.  Most users find it useful.  \par
+\par
+Obviously, to \b KEEP \b0 an App that is already in the Start Menu, you don't have to do a thing.  \par
+\par
+If you don't want to keep an App that is already there, you can \b UNPIN \b0 it.  So: \par
+•	Open the \b Start Menu \b0 , \par
+•	\b Right-click \b0 the App, \par
+•	Select \b Unpin from Start\b0 . \par
+}
+[OPTION - KEEP Notepad pinned to Start Menu]
+{\rtf1\ansi\fs22
+\b0 Notepad is a simple, reliable text editor. It's perfect for quick notes, editing scripts, or viewing plain text files.  Lightweight and indispensable.  \par
+\par
+Obviously, to \b KEEP \b0 an App that is already in the Start Menu, you don't have to do a thing.  \par
+\par
+If you don't want to keep an App that is already there, you can \b UNPIN \b0 it.  So: \par
+•	Open the \b Start Menu \b0 , \par
+•	\b Right-click \b0 the App, \par
+•	Select \b Unpin from Start\b0 . \par
+}
+[OPTION - KEEP Snipping Tool pinned to Start Menu]
+{\rtf1\ansi\fs22
+\b0 Snipping Tool lets you capture screenshots, annotate them, and save or share. It's ideal for troubleshooting, documentation, or sharing visual snippets.  \par
+\par
+Obviously, to \b KEEP \b0 an App that is already in the Start Menu, you don't have to do a thing.  \par
+\par
+If you don't want to keep an App that is already there, you can \b UNPIN \b0 it.  So: \par
+•	Open the \b Start Menu \b0 , \par
+•	\b Right-click \b0 the App, \par
+•	Select \b Unpin from Start\b0 . \par
+}
+[OPTION - KEEP Photos pinned to Start Menu]
+{\rtf1\ansi\fs22
+\b0 Photos is the default image viewer and editor in Windows. It's useful for browsing, cropping, and enhancing pictures without needing extra software.  \par
+\par
+Obviously, to \b KEEP \b0 an App that is already in the Start Menu, you don't have to do a thing.  \par
+\par
+If you don't want to keep an App that is already there, you can \b UNPIN \b0 it.  So: \par
+•	Open the \b Start Menu \b0 , \par
+•	\b Right-click \b0 the App, \par
+•	Select \b Unpin from Start\b0 . \par
+}
+=====================================================================================================
+
+[GROUP - Simplify the Taskbar]
+{\rtf1\ansi\fs22\b0
+\b Please Note: \b0 Microsoft’s security does not permit anything to be pinned to, 
+or removed from the Taskbar, unless it is done by YOU, the User, 
+through the standard Windows interface.  Therefore, we cannot do it for you.  
+We can offer Advice on which Apps to KEEP or Remove, but you will have to do it for yourself.  \par
+\par
+Simply point at any Option you are interested in.  
+You will then, receive full instructions on how to do it yourself, here in the Advice Panel.  
+This can then be printed, one at a time, or appended to you own WORD document, for later attention.  \par
+\par
+\b Once upon a time \b0 , the only applications that appeared in the Taskbar, were ones that were currently running.  
+This was to enable you to switch between them, easily.  \par
+\par
+These days, however, you can pin Applications permanently to the Taskbar.  
+The problem with this, is that you cannot tell which are open, and which are not - simply by looking at the Taskbar.  
+We therefore suggest that you restrict pinning Apps to the Taskbar that you use frequently and will open with a single click.  \par
+\par
+For most people this will be the Applications shown.  
+For other applications that have Documents associated with them that you use fairly frequently, like Microsoft WORD, 
+for instance, it is just as easy to use the Start Menu, anyway.  
+For, if you pinned WORD to the Taskbar, and opened it from there, you'd still have open the Document you want.  \par
+\par
+By comparison, clicking the Start Menu once, then clicking the Document you want, 
+is an absolute breeze - as most of the time it's a recent Document!  
+So, there is no point in it permanently occupying space on the Taskbar.  \par
+\par
+
+}
+
+[SELECT - DIY ONLY]
+
+[OPTION - KEEP Search Box, ON the Taskbar]
+{\rtf1\ansi\fs22
+Microsoft has changed the Search Box behaviour more than once. Previously, clicking it merely opened the 
+Start Menu's Search panel - you could not type into the Taskbar Search Box itself. 
+That was enough reason to remove it. \par
+\par
+From Build 26200, Microsoft has restored and enhanced it: \par
+  •  \b Click in it without typing\b0, and it shows your Recent Apps, \par
+     most-used Apps, and Quick Searches you might find useful. \par
+  •  \b Start typing\b0, and it searches directly from the Taskbar \par
+     without opening the Start Menu. \par
+Whether to keep it is now genuinely a matter of preference.  
+On balance, we prefer to KEEP it - hence our recommendation. \par
+\par
+If you like quick access to recent activity and a visible search entry point, it is worth keeping.  
+If you prefer a cleaner Taskbar, pressing the <Windows> key and typing does the same thing.  
+This option only hides or shows the Search Box.  It does not disable Search itself. \par
+\par
+To change your \b Search Box settings \b0 :\par
+  • \b Right-click \b0 anywhere on \b the Taskbar \b0,\par
+  • Click \b Taskbar settings\b0 ,\par
+  • Set \b Search \b0 to either: \par
+    -  \b hide \b0 \par
+    -  \b Search icon only \b0 \par
+    -  \b Search icon and label \b0 \par
+    -  \b Search box \b0 \par 
+}
+
+[OPTION - KEEP CoPilot, ON the Taskbar]
+{\rtf1\ansi\fs22
+CoPilot is Microsoft's AI assistant, integrated directly into Windows.  
+From the Taskbar you can launch it with a single click to get summaries, explanations, or help with tasks.  
+Since it's becoming a core feature, we recommend keeping it pinned for quick access.  \par
+}
+
+[OPTION - KEEP File Manager, ON the Taskbar]
+{\rtf1\ansi\fs22
+File Explorer (File Manager) is essential for navigating folders, drives, and files. Having it pinned to the Taskbar means you can open it instantly, without digging through the Start Menu. This is one of the few apps worth keeping there permanently.\par
+\par
+Obviously, to \b KEEP \b0 an App that is already in the Taskbar, you don't have to do a thing.  \par
+\par
+If you don't want to keep an App that is already there, you can \b UNPIN \b0 it.  So: \par
+•	\b Right-click \b0 the App on the Taskbar, \par
+•	Click \b Unpin from taskbar\b0 . \par
+}
+
+[OPTION - KEEP Edge, ON the Taskbar]
+{\rtf1\ansi\fs22
+Edge is Microsoft's built-in web browser. Even if you mainly use another browser, it can be handy to keep Edge pinned for system tasks, downloads, or compatibility with Microsoft services. If you use Edge as your main browser, it definitely belongs on the Taskbar.\par
+\par
+Obviously, to \b KEEP \b0 an App that is already in the Taskbar, you don't have to do a thing.  \par
+\par
+If you don't want to keep an App that is already there, you can \b UNPIN \b0 it.  So: \par
+•	\b Right-click \b0 the App on the Taskbar, \par
+•	Click \b Unpin from taskbar\b0 . \par
+}
+
+[OPTION - KEEP Outlook, ON the Taskbar]
+{\rtf1\ansi\fs22
+Outlook is Microsoft's email and calendar client. 
+If you rely on it for work or personal communication, pinning it to the Taskbar gives you one-click access to your inbox and schedule. 
+This saves time compared to opening it from the Start Menu.\par
+\par
+Obviously, to \b KEEP \b0 an App that is already in the Taskbar, you don't have to do a thing.  \par
+\par
+If you don't want to keep an App that is already there, you can \b UNPIN \b0 it.  So: \par
+•	\b Right-click \b0 the App on the Taskbar, \par
+•	Click \b Unpin from taskbar\b0 . \par
+}
+
+[OPTION - Remove Microsoft Store, FROM the Taskbar]
+{\rtf1\ansi\fs22
+The Microsoft Store is where you can download apps, games, and updates. Most users rarely open it directly, since apps update automatically in the background. If you don't actively browse or install apps from the Store, you can remove it from the Taskbar to reduce clutter.  \par
+\par
+To \b UNPIN \b0 an App from the Taskbar:  \par
+•	\b Right-click \b0 the App on the Taskbar, \par
+•	Click \b Unpin from taskbar\b0 . \par
+}
+==============================================================================================================================
+
+
+[GROUP - Keep the Desktop Clean]
+{\rtf1\ansi\fs22\b0
+These days there is no need to clutter your Desktop with application Icons, as the Start Menu will contain all your regularly used Apps, and the Search Bar gives you ready access to everything else.\par
+\par
+}
+[SELECT - ALL]
+
+[OPTION - Remove Edge, FROM the Desktop]
+{\rtf1\ansi\fs22\b0
+This is Microsoft's latest Web Browser, that they will stick on your Desktop.  But it is really not needed on your Desktop.  
+Particularly if you decided to keep it in your Taskbar!\par
+}
+===============================================================================================================================
+
+[GROUP - Privacy && Telemetry]
+{\rtf1\ansi
+\par
+\fs22 Windows 11 collects a significant amount of diagnostic and behavioural data. Some of this helps Microsoft improve Windows, but much of it is used for advertising, personalisation, and product recommendations.\par
+\par
+\b\fs20 This group allows you to reduce or eliminate the most intrusive data collection.\b0\fs22\par
+\par
+These options do not affect system stability, and most users will benefit from disabling them.\par
+\par
+}
+[SELECT - ALL]
+
+[OPTION - Remove Advertising ID]
+{\rtf1\ansi\fs22\b0
+The Advertising ID is used by apps and websites to track your behaviour and personalise ads.  
+Disabling it does not remove advertising from Windows.  It only stops ads being tailored to your activity.  
+You will still see ads, but they will be generic rather than targeted.\par
+\par
+Windows advertising comes from several different sources, including the Start Menu, the lock screen, Widgets, 
+Microsoft Store apps, and system suggestions.  This option only affects personalised advertising.  
+Other types of Windows advertising are controlled by separate settings, which are covered in later options.\par
+\par
+If you use a Microsoft Account, some online services may still personalise content based on your web activity.  
+If you use a local account, disabling the Advertising ID prevents apps from tracking your behaviour entirely.  \par
+\par
+\b\fs20 Ad blockers cannot remove Windows‑built‑in advertising \b0,\par
+but Options below can.  They are marked with: \par
+ \b This option reduces or removes Windows‑built‑in advertising\b0 \par
+}
+
+[OPTION - Remove Tailored Experiences]
+{\rtf1\ansi\fs22\b0
+Tailored Experiences uses your diagnostic data to customise tips, ads, and recommendations across Windows.  
+Disabling it does not remove advertising, but it prevents Windows from analysing how you use your device to influence what you see.\par
+\par
+This setting controls behaviour-based personalisation inside Windows itself.  
+It does not affect web advertising or Microsoft Store apps, and it does not depend on the Advertising ID.\par
+\par
+If you use a Microsoft Account, some online services may still personalise content based on your web activity.  
+If you use a local account, disabling Tailored Experiences prevents Windows from using your diagnostic data for any personalised suggestions.  \par
+\par
+\b\fs20 This option reduces or removes Windows‑built‑in advertising.\b0\fs22\par
+}
+
+[OPTION - Remove Inking and Typing Personalisation]
+{\rtf1\ansi\fs22\b0
+Windows can analyse your typing and handwriting to improve text suggestions and handwriting recognition.  
+This data is processed in the cloud, and disabling this feature prevents Windows from sending your typing patterns 
+or handwriting samples to Microsoft.\par
+\par
+Turning this off does not affect normal typing or the on‑screen keyboard.  It only disables cloud‑based learning and personalisation.  
+If you do not use handwriting features, or if you prefer not to have your input data analysed, it is safe to disable this option.\par
+\par
+If you use a Microsoft Account, some personalisation may still occur in online services, 
+but Windows will no longer upload typing or handwriting data from this device.  
+If you use a local account, disabling this feature prevents Windows from collecting or analysing any inking or typing data.\par
+}
+
+[OPTION - Remove Location Tracking]
+{\rtf1\ansi\fs22\b0
+Location services allow Windows and apps to determine your approximate position using Wi‑Fi, network data, and optional device sensors.  
+Disabling this prevents apps from accessing your location and stops Windows from storing or sharing location information.\par
+\par
+Turning this off does not affect core system functions, but apps that rely on location - such as Maps, Weather, 
+or Find My Device - may show less accurate or less relevant information.  If you do not use location‑based features, 
+disabling this option improves privacy with no noticeable impact.\par
+\par
+If you use a Microsoft Account, some online services may still estimate your location based on your IP address.  
+If you use a local account, disabling Location Tracking prevents Windows and apps on this device from accessing or storing your location.\par
+}
+
+[OPTION - Remove Activity History]
+{\rtf1\ansi\fs22\b0
+Activity History stores a record of the apps you use, the files you open, and the websites you visit, 
+and it can sync this information to your Microsoft Account.  
+Disabling this prevents Windows from collecting this activity data and stops it from being uploaded to the cloud.\par
+\par
+Turning this off does not affect normal app usage or your ability to reopen recent files.  
+It only disables the centralised activity log that Windows uses for features such as Timeline and cross‑device continuity.  
+If you prefer not to have a record of your activity stored or synced, it is safe to disable this option.\par
+\par
+If you use a Microsoft Account, disabling Activity History prevents Windows from uploading your activity to your account.  
+If you use a local account, Windows will not collect or store Activity History on this device at all.\par
+}
+
+[OPTION - Remove Feedback Frequency]
+{\rtf1\ansi\fs22\b0
+Windows occasionally prompts you to provide feedback about your experience.  
+Reducing the feedback frequency prevents these pop‑ups from interrupting your work and stops Windows from requesting additional 
+diagnostic information.\par
+\par
+Disabling or minimising feedback prompts does not affect system performance or functionality.  
+It simply reduces the number of notifications Windows displays and prevents Windows from asking for optional feedback.\par
+\par
+If you use a Microsoft Account, feedback you choose to provide may still be associated with your account.  
+If you use a local account, Windows will not link any feedback to an online identity, and reducing feedback frequency prevents most prompts from appearing.\par
+}
+
+[OPTION - Remove Diagnostic Data Upload]
+{\rtf1\ansi\fs22\b0
+Diagnostic data includes information about how Windows and apps perform on your device.  
+When enabled, Windows can upload this data to Microsoft to help identify problems, improve features, and provide troubleshooting suggestions.  
+Disabling this option prevents Windows from sending diagnostic data beyond what is required for basic security and reliability.\par
+\par
+Turning this off does not affect normal system operation.  It simply limits the amount of information Windows is allowed to upload.  
+Features that rely on enhanced diagnostics, such as tailored troubleshooting or certain preview features, 
+may provide less detailed recommendations.\par
+\par
+If you use a Microsoft Account, some online services may still collect diagnostic information related to those services.  
+If you use a local account, disabling Diagnostic Data Upload prevents Windows from sending optional diagnostic data from this device.\par
+}
+
+[OPTION - Remove Cloud Content Suggestions]
+{\rtf1\ansi\fs22\b0
+Windows may suggest content from the cloud, including files, apps, and online recommendations based on how you use Microsoft services.  
+These suggestions can appear in the Start Menu, File Explorer, and other parts of Windows.\par
+\par
+Disabling this option prevents Windows from analysing your cloud activity to generate personalised suggestions.  
+It does not affect your ability to access cloud files or use services such as OneDrive, Outlook, or Microsoft Store apps.  
+It simply stops Windows from using your cloud usage patterns to recommend content.\par
+\par
+If you use a Microsoft Account, some online services may still personalise content within the service itself.  
+If you use a local account, disabling Cloud Content Suggestions prevents Windows from using any cloud‑based activity 
+from this device for personalised recommendations.\par
+\par
+\b\fs20 This option reduces or removes Windows‑built‑in advertising.\b0\fs22\par
+}
+
+[OPTION - Remove Web Search in Start Menu]
+{\rtf1\ansi\fs22\b0
+When you search in the Start Menu, Windows may send your query to Bing to provide online results alongside local files and apps.  
+This can include suggestions, web links, and other cloud‑based content.\par
+\par
+Disabling this option keeps all Start Menu searches local to your PC.  Windows will no longer send your search terms to Bing, 
+and the Start Menu will only show results from your installed apps, settings, and local files.\par
+\par
+If you use a Microsoft Account, online services may still provide web results inside their own apps, but Start Menu searches will remain local.  
+If you use a local account, disabling this option prevents Windows from sending any Start Menu search queries to the cloud.\par
+\par
+\b\fs20 This option reduces or removes Windows‑built‑in advertising.\b0\fs22\par
+}
+
+[OPTION - KEEP SmartScreen Filter]
+{\rtf1\ansi\fs22\b0
+SmartScreen protects you from malicious websites, unsafe downloads, and potentially harmful apps.  
+It checks files and links against Microsoft’s security database to warn you before you open something dangerous.\par
+\par
+Although SmartScreen sends limited data to Microsoft for threat analysis, it provides significant security benefits 
+and helps block common attacks.  Disabling it reduces your protection against phishing, malware, and untrusted downloads.\par
+\par
+We recommend keeping SmartScreen enabled unless you have a specific reason to disable it or you already use alternative security tools 
+that provide equivalent protection.\par
+}
+
+[OPTION - Remove Microsoft Edge Telemetry]
+{\rtf1\ansi\fs22\b0
+Microsoft Edge, like Windows itself, collects and sends telemetry data to Microsoft.  
+This is separate from Windows telemetry and operates independently - disabling Windows diagnostic data does not stop Edge from sending its own usage and performance data.\par
+\par
+Edge telemetry includes information about how you use the browser, which features you interact with, and performance metrics.  
+While Microsoft states this data is anonymised, it is collected continuously in the background.\par
+\par
+Disabling Edge telemetry prevents the browser from sending this usage data to Microsoft.  
+It does not affect browsing speed, security updates, or any browser features.\par
+\par
+\b Note:\b0  Edge may still send minimal data required for security features such as SmartScreen.  
+This option reduces optional telemetry, not security-critical communication.\par
+}
+
+[OPTION - Remove Customer Experience Improvement Program]
+{\rtf1\ansi\fs22\b0
+The Customer Experience Improvement Program (CEIP) is a Microsoft scheme that collects anonymous data about how you use Windows and Microsoft software.  
+This includes information about hardware configuration, feature usage patterns, and application behaviour.\par
+\par
+Microsoft uses this data to identify trends and improve future versions of Windows and its applications.  
+Participation is technically voluntary, but CEIP is enabled by default and runs silently in the background through a series of scheduled tasks.\par
+\par
+Disabling CEIP stops these scheduled tasks from running and prevents Windows from collecting and uploading this usage data.  
+It does not affect system performance, stability, or your ability to receive updates.\par
+\par
+\b Note:\b0  CEIP is separate from Windows diagnostic telemetry, which is controlled by the \b Remove Diagnostic Data Upload\b0  option above.  
+Disabling both together provides the most comprehensive reduction in background data collection.\par
+}
+
+
+=======================================================================================================================
+[GROUP - Performance Acceleration]
+{\rtf1\ansi
+\par
+\fs22 Windows includes several hidden performance features that improve responsiveness, reduce UI latency, 
+and optimise CPU scheduling. These options enable Microsoft’s internal Low Latency Profile (LLP), foreground scheduling boosts,
+ and reduced background task throttling.\par
+\par
+\b\fs20 This group enables advanced performance acceleration features.\b0\fs22\par
+All options are safe and reversible.\par
+\par
+}
+[SELECT - ALL]
+
+[OPTION - ENABLE Low Latency Profile (LLP)]
+{\rtf1\ansi\fs22
+Microsoft’s hidden Low Latency Profile (LLP), temporarily boosts CPU frequency during Start Menu, Search, and shell interactions.  
+This improves responsiveness and reduces UI lag, especially on low-end or older hardware.  \par
+\par
+Requires KB5089573 or later.\par
+}
+
+[OPTION - ENABLE Scheduler Responsiveness Mode]
+{\rtf1\ansi\fs22
+Improves foreground application responsiveness by increasing foreground CPU quantum length and priority boost.  
+This reduces input latency and improves UI smoothness, especially on older or heavily loaded systems.\par
+\par
+May slightly reduce background task performance.
+}
+
+[OPTION - ENABLE Reduced Background Task Latency]
+{\rtf1\ansi\fs22
+This works by disabling Windows background throttling mechanisms including Power Throttling, Background Access throttling, 
+and EcoQoS.  This reduces latency for background tasks and improves overall system responsiveness.\par
+\par
+May increase battery usage on laptops.
+}
+
+
+=======================================================================================================================
+
+[GROUP - Visual Effects]
+{\rtf1\ansi
+\par
+\fs22 Windows 11 uses transparency, animations, and shadow effects throughout its interface.  On modern hardware these are barely noticeable.  On older or lower-specification machines they can cause sluggishness, delayed window responses, and reduced overall responsiveness.\par
+\par
+\b\fs20 This group allows you to disable visual effects that consume CPU and GPU resources without affecting functionality.\b0\fs22\par
+All options are safe and reversible.\par
+\par
+}
+[SELECT - ALL]
+
+[OPTION - DISABLE Transparency Effects]
+{\rtf1\ansi\fs22
+Windows 11 applies a frosted-glass transparency effect to the Start Menu, Taskbar, Settings, and other windows.  This requires continuous GPU compositing to render the blurred backgrounds behind each transparent surface.\par
+\par
+On modern hardware this is negligible.  On older or integrated-graphics systems it can contribute to sluggish UI responses, particularly when opening the Start Menu or switching between windows.\par
+\par
+Disabling transparency replaces the frosted-glass effect with a solid background colour.  The interface looks slightly flatter but behaves identically in every other way.\par
+\par
+\b Note:\b0  This setting is per-user.  It applies to the current Windows user account only.\par
+}
+
+[OPTION - DISABLE Window Animations]
+{\rtf1\ansi\fs22
+Windows animates windows as they open, close, minimise, and maximise.  It also animates menus, tooltips, and other interface elements as they appear and disappear.  On fast hardware these transitions are smooth and barely perceptible.\par
+\par
+On slower or older machines, particularly those with limited RAM or integrated graphics, these animations add measurable delay to every window interaction.  Disabling them makes the interface feel noticeably more responsive - windows open and close instantly rather than fading or sliding into place.\par
+\par
+This is one of the single most effective visual changes for improving perceived performance on older hardware.\par
+\par
+\b Note:\b0  This setting is per-user.  It applies to the current Windows user account only.\par
+}
+
+=======================================================================================================================
+
+[GROUP - Background Services]
+{\rtf1\ansi
+\par
+\fs22 Windows 11 runs a number of background services that support features such as gaming, cloud sync, widgets, and content suggestions. Many users do not need these services, and disabling them can reduce resource usage and improve privacy.\par
+\par
+\b\fs20 This group allows you to disable non-essential background services.\b0\fs22\par
+None of these changes affect core Windows functionality.\par
+\par
+}
+
+[SELECT - ALL]
+
+[OPTION - Remove Widgets Service]
+{\rtf1\ansi\fs22
+Widgets provide news, weather, sports, and other online content from the left-hand side of the Taskbar.  
+They rely on background services that regularly connect to the internet to download updates and personalised information.\par
+\par
+If you do not use Widgets, removing the service reduces network usage and prevents Windows from displaying news feeds, 
+promotional cards, or other online suggestions.  This also stops the Widgets panel from running in the background.\par
+\par
+Removing the Widgets service does not affect core system functions or the Taskbar itself.  
+It simply disables the online content feed and the background processes that support it.\par
+}
+
+[OPTION - Remove Xbox Game Bar Service]
+{\rtf1\ansi\fs22
+The Xbox Game Bar provides screen recording, performance overlays, game capture tools, and social features for gamers.  
+t also runs background services that support in‑game shortcuts and real‑time performance monitoring.\par
+\par
+If you do not play games on your PC, removing this service reduces background activity and frees system resources.  
+This also prevents the Game Bar interface from appearing when gaming shortcuts are pressed.\par
+\par
+Removing the Xbox Game Bar service does not affect normal system operation or third‑party screen recording tools.  
+It simply disables the built‑in gaming overlay and its supporting background processes.\par
+}
+
+[OPTION - Remove Xbox Live Auth Manager]
+{\rtf1\ansi\fs22
+The Xbox Live Auth Manager handles sign‑in and authentication for Xbox accounts.  
+It is required only for Microsoft Store games that use Xbox services, achievements, cloud saves, or multiplayer features.\par
+\par
+If you do not use Xbox services or play games that rely on Xbox integration, it is safe to remove this service.  
+Doing so reduces background activity and prevents Xbox‑related components from running unnecessarily.\par
+\par
+Removing the Xbox Live Auth Manager does not affect normal system operation or non‑Xbox games.  
+It simply disables authentication features used by Xbox apps and Microsoft Store titles that depend on Xbox services.\par
+}
+
+[OPTION - Remove Xbox Accessory Management Service]
+{\rtf1\ansi\fs22
+The Xbox Accessory Management Service supports Xbox controllers and other Xbox‑branded hardware.  
+It enables features such as accessory configuration, firmware updates, and device management for compatible peripherals.\par
+\par
+If you do not use Xbox controllers or other Xbox accessories, removing this service has no negative impact.  
+Doing so reduces background activity and prevents Xbox‑related components from running unnecessarily.\par
+\par
+Removing the Xbox Accessory Management Service does not affect standard USB or Bluetooth controllers that do not rely on Xbox‑specific features.  
+It simply disables management functions for Xbox‑branded hardware.\par
+}
+
+[OPTION - Remove Game DVR and Capture Service]
+{\rtf1\ansi\fs22
+Game DVR records gameplay and captures screenshots in the background.  
+It supports features such as automatic recording, game clips, and performance overlays used by the Xbox Game Bar.\par
+\par
+If you do not record games or use the Game Bar’s capture tools, disabling this service prevents unnecessary background disk and CPU usage.  
+This also stops Windows from creating automatic game clips while you play.\par
+\par
+Removing the Game DVR and Capture Service does not affect normal system operation or third‑party recording tools.  
+It simply disables Windows’ built‑in game capture features and their associated background processes.\par
+}
+
+[OPTION - Remove OneDrive Auto-Start]
+{\rtf1\ansi\fs22
+Even if OneDrive is installed, against our advice, you may not want it running automatically.  
+When enabled, OneDrive launches at startup, signs you in, and begins syncing files in the background.\par
+\par
+Disabling auto-start prevents OneDrive from launching in the background and syncing files without your knowledge.  
+This reduces startup load and stops OneDrive from using network or disk activity unless you open it manually.\par
+\par
+Removing OneDrive auto-start does not uninstall OneDrive or affect your ability to use it.  
+You can still open OneDrive at any time and sync files when you choose.\par
+}
+[OPTION - KEEP Windows Spotlight Service]
+{\rtf1\ansi\fs22
+Windows Spotlight downloads images, tips, and suggestions for the lock screen.  
+It regularly updates the background with new photos and may display occasional informational or promotional content from Microsoft.\par
+\par
+If you prefer a static background, removing this service reduces network usage and prevents Spotlight from downloading new images or suggestions.  However, keeping it enabled allows Windows to refresh your lock screen with high‑quality images and curated content.\par
+\par
+We recommend keeping Windows Spotlight enabled if you enjoy the rotating lock screen images or want Windows to personalise 
+the lock screen experience.  If you prefer a fixed background, it is safe to remove.\par
+}
+
+[OPTION - KEEP Windows Search Service]
+{\rtf1\ansi\fs22
+Windows Search indexes your files, apps, and settings to provide fast and accurate search results.  
+It maintains a local index so that searches complete quickly without scanning your entire drive each time.\par
+\par
+Disabling this service can slow down file searches significantly, especially on systems with large drives or many documents.  
+Without the index, Windows must search your files manually, which takes much longer.\par
+\par
+We recommend keeping Windows Search enabled unless you rarely use Windows search or rely exclusively on third‑party search tools.  
+For most users, the performance benefits outweigh the background indexing activity.\par
+}
+
+[OPTION - Remove Suggested Actions Service]
+{\rtf1\ansi\fs22
+Suggested Actions analyses copied text, such as dates, phone numbers, or addresses, and offers contextual actions like creating calendar events 
+or making calls.  It monitors clipboard activity to detect when these suggestions may be relevant.\par
+\par
+If you prefer not to have Windows analyse clipboard content, you may safely remove this service.  
+Disabling it prevents Windows from scanning copied text and stops contextual suggestions from appearing.\par
+\par
+Removing the Suggested Actions Service does not affect normal clipboard functionality or third‑party clipboard tools.  
+It simply disables Windows’ built‑in detection and suggestion features.\par
+}
+==============================================================================================================================
+
+[GROUP - System Experience]
+{\rtf1\ansi\fs22 
+Windows 11 includes a range of features designed to "enhance the experience" by offering suggestions, tips, promotions, and automated behaviours. Many users find these distracting or unnecessary.\par
+\par
+\b\fs20 This group allows you to disable Windows features that interrupt, recommend, or promote content.\b0\fs22\par
+\par
+These changes do not affect system stability.\par
+\par
+}
+[SELECT - ALL]
+
+[OPTION - Remove Tips and Suggestions]
+{\rtf1\ansi\fs22
+Windows occasionally displays tips, suggestions, and pop‑ups to guide you through features or highlight new capabilities.  These appear in the Taskbar, notifications, and various parts of the interface.\par
+\par
+While helpful for new users, many people find them distracting or intrusive.  They can interrupt your workflow and introduce unexpected prompts while you are using the system.\par
+\par
+Disabling them creates a quieter, more predictable experience.  Windows will no longer show feature suggestions or promotional tips while you work.\par
+}
+
+[OPTION - Remove Lock Screen Spotlight]
+{\rtf1\ansi\fs22
+Windows Spotlight downloads images and promotional content for the lock screen.\par
+\par
+If you prefer a static background without suggestions or ads, removing Spotlight is recommended.\par
+}
+
+[OPTION - Remove Start Menu Recommendations]
+{\rtf1\ansi\fs22
+The Start Menu includes a Recommendations section located directly below your pinned apps.  
+This area may show recently opened files, recently installed apps, suggested apps, website links, or other activity‑based items.\par
+\par
+Many users expect this section to behave like a simple "recent files" list, but it often updates slowly and prioritises suggestions 
+or promotional content instead of the files you actually used.  Because of this, the Recommendations area can feel inconsistent and 
+not particularly useful.\par
+\par
+Removing Start Menu recommendations hides this entire section and keeps the Start Menu focused solely on your pinned apps.  
+Windows will no longer display suggested or activity‑based content in the Start Menu.\par
+}
+
+[OPTION - Remove Suggested Apps]
+{\rtf1\ansi\fs22
+Windows may display suggested apps from the Microsoft Store in the Start Menu.  
+These suggestions can appear as promotional tiles mixed into your pinned apps, or as recommended items in the Recommendations section.\par
+\par
+If you prefer a cleaner Start Menu without promotional content, you can disable these suggestions.  
+Doing so prevents Windows from inserting Store app recommendations or advertising tiles.\par
+}
+
+[OPTION - Remove Suggested Content in Settings]
+{\rtf1\ansi\fs22
+The Settings app may display suggested content such as Microsoft account reminders, promotional messages, 
+or recommendations for Microsoft services.  These appear at the top of various Settings pages and can include tips, offers, 
+or prompts to use additional features.\par
+\par
+If you prefer a cleaner, distraction‑free Settings experience, you can disable these suggestions.  
+Doing so removes promotional content and keeps the Settings app focused solely on configuration options.\par
+}
+
+[OPTION - Remove Automatic App Launching]
+{\rtf1\ansi\fs22
+Some apps may launch automatically after updates or during system startup.  
+This can happen when apps register themselves to run in the background, reopen after system restarts, or relaunch following Store updates.\par
+\par
+If you prefer to control which apps run on your system, you can disable this behaviour.  
+Doing so prevents unexpected app launches and stops apps from reopening themselves without your permission.\par
+\par
+Removing automatic app launching gives you a cleaner, more predictable startup experience and ensures that only the apps 
+you choose are allowed to run.\par
+}
+
+[OPTION - Remove Suggested Actions]
+{\rtf1\ansi\fs22
+Suggested Actions analysed copied text, such as dates, phone numbers, or addresses, 
+and offered contextual actions like creating calendar events or making calls.\par
+\par
+\b This feature has been deprecated and removed by Microsoft in Windows 11 24H2 (January 2025).\b0  
+If you are running Windows 11 24H2 or later, it is no longer present on your system and 
+this option will have no effect.\par
+\par
+On earlier versions of Windows 11, selecting this option would disable Windows from scanning 
+copied text and stop contextual suggestions from appearing.\par
+}
+
+[OPTION - Remove AutoPlay]
+{\rtf1\ansi\fs22
+AutoPlay automatically opens media or displays prompts when you insert USB drives, memory cards, or other removable devices.  
+It can launch apps, play videos, or show file browsing options based on the content it detects.\par
+\par
+If you prefer to control what happens when new devices are connected, you can disable AutoPlay.  
+Doing so prevents unexpected pop‑ups and reduces the risk of running unwanted or untrusted software from removable media.\par
+\par
+Disabling AutoPlay does not affect your ability to open files manually.  
+It simply stops Windows from reacting automatically when new devices are inserted.\par
+}
+
+[OPTION - KEEP Snap Assist]
+{\rtf1\ansi\fs22
+Windows provides two related features that help you arrange windows on your screen: 'Snap Layouts' and 'Snap Assist'.  
+Both features make it easier to choose where each window should go, but they appear at different times and in different places.\par
+\par
+\b 'Snap Layouts'\b0  appear when you hover over the Maximise button.  
+A small grid pops up showing preset window arrangements, such as side‑by‑side or quadrant layouts. 
+Selecting one of these positions automatically resizes the current window and places it in that part of the screen.  
+Snap Layouts continue to work even if Snap Assist is disabled.\par
+\par
+\b 'Snap Assist'\b0  appears after a Window has been positioned, either by dragging it into the side or corner of the screen, using the keyboard, 
+or choosing a layout from 'Snap Layouts'.  Once the first window is in place, Windows shows thumbnails of your other open apps on the remaining space, 
+allowing you to choose what to place beside it.  If Snap Assist is disabled, these thumbnails will not appear and you must position the next window yourself.\par
+\par
+Both features help you organise your workspace without manually resizing windows.  
+'Snap Layouts' help you choose a layout before placing the window, while 'Snap Assist' helps you complete the layout afterwards.\par
+\par
+We recommend keeping Snap Assist enabled unless you prefer to arrange and size windows entirely by hand.  
+Disabling it removes the post‑placement thumbnails and automatic layout suggestions.  
+It does NOT disable 'Snap Layouts'.  Nor can 'Snap Layouts' be disabled.\par
+}
+
+[OPTION - KEEP Clipboard History]
+{\rtf1\ansi\fs22
+Clipboard History stores multiple copied items so you can paste older content without re‑copying it.  
+This can save time when working with text, code, or repeated snippets.
+\par
+If you prefer not to keep older copied items, you can disable this feature to improve privacy.  
+Disabling it removes the list of previously copied items and limits the clipboard to the most recent copy only.  \par
+}
+
+[OPTION - Remove Nearby Sharing]
+{\rtf1\ansi\fs22
+Nearby Sharing allows you to send files to nearby devices using Bluetooth or Wi‑Fi.  
+It works only when both devices support the feature and are within range.\par
+
+If you do not use this feature, removing it reduces background scanning for nearby devices and improves privacy.\par
+}
+=====================================================================================================
+
+[GROUP - Security and Network]
+{\rtf1\ansi\fs22
+Windows 11 ships with several network and power settings that can cause unexpected behaviour, slow down updates, or waste disk space - particularly on modern hardware.\par
+\par
+\b\fs20 This group allows you to adjust settings that affect system reliability, update behaviour, and network protocol usage.\b0\fs22\par
+\par
+These changes are safe for most home users, but read the advice for each option carefully before proceeding.\par
+\par
+}
+[SELECT - ALL]
+
+[OPTION - Remove IPv6]
+{\rtf1\ansi\fs22
+Every device on a network has an address.  For many years, the standard was \b IPv4\b0, 
+which uses addresses like \b 192.168.1.1\b0.  As the internet grew, a newer standard called 
+\b IPv6\b0  was developed to provide more addresses.\par
+\par
+Windows 11 enables IPv6 by default on all network adapters.  
+For most home users, however, your router and internet connection still operate on IPv4, and IPv6 is simply unused.  
+In some cases, having IPv6 enabled alongside IPv4 can cause network delays, 
+as Windows tries IPv6 first before falling back to IPv4.\par
+\par
+Disabling IPv6 forces Windows to use IPv4 only, which can resolve certain connectivity issues and simplify troubleshooting.\par
+\par
+\b Note:\b0  If your internet provider explicitly supports IPv6, or if you use corporate VPNs that require it, 
+you should \b KEEP\b0  IPv6 enabled.  For the vast majority of home users, however, disabling it is safe and can improve reliability.\par
+}
+
+[OPTION - Remove Fast Startup]
+{\rtf1\ansi\fs22
+Fast Startup is a Windows feature that speeds up boot time by saving part of the system state to disk when you shut down
+ - similar to hibernation.  Instead of a full shutdown, Windows stores the kernel session so it can reload it faster next time.  \par
+\par
+While this sounds helpful, Fast Startup has several well-known problems:\par
+\b    •   \b0 It can prevent Windows updates from completing properly, because some updates require a full shutdown rather than a hybrid one.  Microsoft themselves recommend using \b Restart \b0 rather than \b Shut Down \b0 after updates for this reason.\par
+\b    •   \b0 It can cause problems with dual-boot systems, as it leaves the Windows partition in a locked state.  \par
+\b    •   \b0 It can cause driver and hardware issues, as devices are restored from a saved state rather than being fully re-initialised.  \par
+\par
+On modern SSDs, the boot speed difference is barely noticeable - typically just a second or two.  
+Disabling Fast Startup ensures clean, reliable shutdowns and proper update installation.\par
+\par
+\b Note:\b0  Disabling Fast Startup also disables Hibernation, and will delete the \b hiberfil.sys\b0  
+file, freeing disk space equal to roughly 40\% of your installed RAM.\par
+}
+
+[OPTION - Remove Hibernation]
+{\rtf1\ansi\fs22
+Hibernation saves the entire contents of your RAM to a hidden file on disk (\b hiberfil.sys\b0), then powers off the computer completely.  When you power back on, Windows restores from this file rather than doing a fresh boot, picking up exactly where you left off.\par
+\par
+Hibernation is most useful on laptops where you need to preserve your session over a long period without any battery drain.  On desktop PCs, or on laptops with SSDs where cold boots take only a few seconds, hibernation offers little practical benefit.\par
+\par
+The \b hiberfil.sys\b0  file reserves disk space equal to approximately \b 40\% of your installed RAM\b0.  On a system with 16 GB of RAM, that is around 6.4 GB of storage permanently set aside - space that could be put to better use.\par
+\par
+Disabling hibernation removes this file and frees that space.  Sleep mode remains available for short breaks, and a full shutdown is available for longer ones.\par
+\par
+\b Note:\b0  Disabling hibernation also disables Fast Startup, as Fast Startup relies on the hibernation file.  If you have already removed Fast Startup above, hibernation has already been disabled.\par
+}
+====================================================================================================
+
+[GROUP - Windows Update]
+{\rtf1\ansi\fs22
+Windows Update keeps your system secure and up to date.  However, its default settings can cause unexpected forced restarts, consume your internet bandwidth to distribute updates to other PCs, and automatically install device drivers that may be less stable than those provided directly by manufacturers.\par
+\par
+\b\fs20 This group adjusts Windows Update behaviour without disabling security updates.\b0\fs22\par
+\par
+Security and critical updates will continue to be installed automatically.  These changes only affect restart behaviour, driver installation, and bandwidth usage.\par
+\par
+}
+[SELECT - ALL]
+
+[OPTION - Set Active Hours]
+{\rtf1\ansi\fs22
+Windows Update can restart your PC automatically after installing updates.  By default, it tries to choose a convenient time, but it does not always succeed and can restart your PC while you are actively using it.\par
+\par
+Setting Active Hours tells Windows the times during which you are likely to be using your PC.  Windows will not schedule automatic restarts within these hours.\par
+\par
+This option sets your Active Hours to \b 8am to 10pm\b0.  Windows will only schedule automatic restarts outside these hours - typically overnight.\par
+\par
+\b Note:\b0  This does not prevent updates from being downloaded and installed.  It only controls when Windows is permitted to restart your PC automatically to complete them.\par
+}
+
+[OPTION - DISABLE Automatic Driver Updates]
+{\rtf1\ansi\fs22
+By default, Windows Update automatically downloads and installs device drivers - the software that controls your hardware such as your graphics card, network adapter, and printer.\par
+\par
+While this can be convenient, drivers delivered through Windows Update are sometimes older than those available directly from the manufacturer, and can occasionally cause instability or reduced performance.  Most hardware manufacturers release updated drivers through their own software or websites.\par
+\par
+Disabling automatic driver updates prevents Windows from replacing your existing drivers without your knowledge.  You can still update drivers manually through Device Manager or the manufacturer's own software at any time.\par
+\par
+\b Note:\b0  This only affects driver updates delivered through Windows Update.  It does not affect security patches or system updates.\par
+\par
+\b Windows Home users:\b0  This setting works on the vast majority of Home edition PCs.  However, Microsoft only \i officially \i0 supports it on Windows Pro.  If you find that drivers are still being updated automatically after running this option, it is because your version of Windows Home is not honouring the setting - in which case there is unfortunately nothing further we can do.\par
+}
+
+[OPTION - DISABLE Delivery Optimisation]
+{\rtf1\ansi\fs22
+Windows Update uses a feature called Delivery Optimisation to distribute update files between PCs.  By default, your PC may upload portions of Windows updates to other computers on the internet, using your bandwidth without your knowledge.\par
+\par
+While Microsoft limits this to a fraction of your available bandwidth, it can still cause noticeable slowdowns on slower internet connections, and many users prefer not to have their connection used this way without explicit consent.\par
+\par
+Disabling Delivery Optimisation prevents Windows from uploading updates to other PCs on the internet.  Updates will still download normally from Microsoft's servers.\par
+\par
+\b Note:\b0  Delivery Optimisation on your \b local network\b0  (sharing updates between PCs in your own home) is not affected by this option.\par
+}
+
+====================================================================================================
+
+[GROUP - File Explorer]
+{\rtf1\ansi\fs22
+File Explorer is the tool you use every day to navigate files and folders.  Windows 11 ships with several File Explorer settings that hide useful information by default - including file extensions and hidden files - which can make your system harder to manage and even create security risks.\par
+\par
+\b\fs20 This group allows you to make File Explorer more informative and easier to use.\b0 \fs22\par
+\par
+None of these changes affect system stability or performance.\par
+\par
+}
+[SELECT - ALL]
+
+[OPTION - SHOW File Extensions]
+{\rtf1\ansi\fs22
+By default, Windows hides the extension part of filenames - the \b .docx\b0, \b .pdf\b0, \b .exe\b0, or \b .jpg\b0  that tells you what type of file something is.  A file called \b Report.docx\b0  appears simply as \b Report\b0.\par
+\par
+This creates a real security risk.  A malicious file named \b Invoice.pdf.exe\b0  - a program disguised as a PDF - will appear as \b Invoice.pdf\b0  with its dangerous \b .exe\b0  extension hidden.  Without extensions visible, there is no quick way to tell a legitimate document from a harmful program using a convincing icon as a disguise.\par
+\par
+Showing file extensions makes this deception immediately visible, and makes it much easier to identify what any file actually is before opening it.\par
+\par
+Microsoft themselves recommend showing file extensions as a security best practice.\par
+}
+
+[OPTION - Remove Hidden Files]
+{\rtf1\ansi\fs22
+Windows hides certain files and folders by default, marking them as hidden so they do not clutter everyday 
+browsing.  These include system configuration files, application data folders, and other items that 
+Windows considers internal.\par
+\par
+For most routine tasks, hidden files are best safely left out of view.  
+There are situations where you need to access them - such as finding the \b AppData\b0  folder to back up 
+application settings, troubleshooting a program, or accessing configuration files.  
+But this can always be selected temporarily in File Manger.  \par
+\par
+So, leaving hidden files, hidden, makes your system distraction‑free and easier to manage.  
+It does not change or delete anything - it simply reduces un-necessary clutter.  \par
+}
+
+[OPTION - Remove Frequent Folders]
+{\rtf1\ansi\fs22
+File Explorer's Quick Access panel shows a list of frequently visited folders alongside your pinned locations.  While this can be convenient, it also means that anyone who opens File Explorer can immediately see which folders you have been visiting most often.\par
+\par
+If you share your computer with others, or simply prefer not to have your recent activity automatically displayed, you can remove frequent folders from Quick Access.  Your pinned folders will remain, but the automatically populated list of recently visited locations will no longer appear.\par
+\par
+This change does not affect your ability to navigate to any folder - it simply removes the automatic activity-based suggestions from the Quick Access panel.\par
+}
+
+[OPTION - Remove Recent Files]
+{\rtf1\ansi\fs22
+File Explorer's Quick Access panel also shows a list of recently opened files across all your applications.  This is separate from the frequent folders list and shows individual files rather than folders.\par
+\par
+Like frequent folders, this list exposes your recent activity to anyone who opens File Explorer.  If you share your computer, or prefer a cleaner, more private Quick Access panel, you can remove recent files from the list.\par
+\par
+Removing recent files from Quick Access does not affect your ability to open any file - it simply stops File Explorer from automatically tracking and displaying your recently accessed files.\par
+}
+====================================================================================================
+
+[GROUP - Notifications]
+{\rtf1\ansi\fs22
+Windows 11 uses several types of notifications to alert you to activity from apps and the system itself.  These include pop-up banners, badge counters on Taskbar icons, and notification sounds.  While useful, they can quickly become distracting - particularly on a freshly set up machine where many apps are competing for your attention.\par
+\par
+\b\fs20 This group allows you to reduce or remove the most disruptive notification behaviours.\b0\fs22\par
+\par
+These changes do not prevent apps from logging notifications - they simply reduce how intrusively they are displayed.\par
+\par
+}
+[SELECT - ALL]
+
+[OPTION - Remove Notification Badges]
+{\rtf1\ansi\fs22
+Notification badges are the small numbered circles or dots that appear on Taskbar app icons to indicate unread messages, pending actions, or alerts.  For example, a mail app may show a number indicating how many unread emails you have.\par
+\par
+While badges can be helpful for keeping track of activity, they can also create a constant sense of urgency and distraction - particularly when multiple apps are all showing counters simultaneously.  On a freshly set up machine, several apps may show badges before you have even configured them.\par
+\par
+Removing notification badges hides these counters from Taskbar icons.  Apps will still send notifications and banners - you simply will not see the persistent counter on the icon itself.\par
+}
+
+[OPTION - Remove Notification Sounds]
+{\rtf1\ansi\fs22
+By default, Windows plays a sound whenever a notification banner appears on screen.  Each app can trigger its own alert sound, which means a busy system can produce a constant stream of audio interruptions.\par
+\par
+Disabling notification sounds silences these alerts while leaving the visual banners in place.  You will still see notification pop-ups, but they will appear quietly without accompanying audio.\par
+\par
+This is particularly useful in quiet environments, during video calls, or when you simply prefer a less disruptive experience.\par
+\par
+\b Note:\b0  This setting silences notification sounds system-wide.  Individual apps may also have their own sound settings that can be adjusted separately within each app.\par
+}
+====================================================================================================
