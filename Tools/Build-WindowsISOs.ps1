@@ -19,14 +19,21 @@
                  - That download, completely untouched, becomes
                    FULL Install.iso.
                  - BYPASS Install.iso is built by mounting that same ISO,
-                   copying its contents out, then deleting the one file
-                   Windows Setup calls to enforce the TPM/Secure Boot/RAM
-                   checks: sources\appraiserres.dll. Confirmed against
-                   Rufus's own source (2026-09-24): this is the actual
-                   mechanism its "Extended Windows 11 Installation" checkbox
-                   uses, not a registry-key workaround applied at install
-                   time -- so the result behaves the same way a
-                   Rufus-modified image would.
+                   copying its contents out, then emptying (not deleting --
+                   Setup expects the file to still exist, just unreadable as
+                   a real check) the one file Windows Setup calls to enforce
+                   the TPM/Secure Boot/RAM checks: sources\appraiserres.dll.
+                   Confirmed against Rufus's own source (2026-09-24): this is
+                   the same technique its "Extended Windows 11 Installation"
+                   checkbox uses. BUT confirmed for real, 2026-10-17, that
+                   this alone is no longer sufficient on its own for Windows
+                   11 builds 26000+ (covers both 25H2 and 26H2) -- Setup's
+                   hardware check still runs, and needs specific registry
+                   values set first. That second half of the mechanism --
+                   also traced from Rufus's source (res/setup/setup.c) -- now
+                   lives in Install Windows.ps1's Set-Windows11BypassRegistryKeys
+                   function, applied automatically immediately before Setup
+                   is launched. See that file's own header for the full story.
                  - The stripped folder is then repackaged as a new ISO using
                    the IMAPI2 COM interface built into Windows (no ADK /
                    oscdimg install needed). It's built as UDF, not plain
@@ -46,30 +53,41 @@
    Designed by: Brian McGuigan
             of: On2it Software Ltd
        Code by: Claude
-       Version: 4 (Show-ManualIsoInstructions no longer trusts one Test-Path
-                after the "Press Enter once it's there" prompt and moves on --
-                confirmed for real, 2026-10-15: pressing Enter before a manual
-                copy of FULL Install.iso had actually finished let the build
-                carry on with a file still open for writing, which then
-                failed later trying to read it. Now loops, checking the file
-                isn't still locked by whatever's copying it and is at least a
-                plausible size for a genuine Windows 11 ISO, re-prompting
-                instead of accepting an in-progress or truncated copy.
-                Also: Get-OfficialWindows11IsoUrl now resolves and downloads
-                whatever Fido's own GitHub release currently considers
-                latest, right before using it, rather than relying solely
-                on the vendored Fido.ps1 copy -- confirmed for real,
-                2026-10-15: the vendored v1.70 copy only listed up to
-                Windows 11 25H2, even though 26H2 had already shipped,
-                purely because v1.70 predates Fido adding 26H2 support.
-                Falls back to the vendored copy untouched if the live
-                fetch fails for any reason)
-         Dated: 15-Oct-26
-        Status: ISO-build mechanism not yet proven end-to-end. Needs a live
-                test that Windows Setup actually accepts a BYPASS Install.iso
-                rebuilt this way (IMAPI2 + appraiserres.dll strip) on real
-                unsupported hardware before this replaces the pre-built ISOs
-                for real.
+       Version: 5 (Documentation accuracy fix, 2026-10-17: the header and
+                ISO Descriptions.txt both used to say appraiserres.dll is
+                "deleted"/"removed" and that the bypass mechanism is "not a
+                registry-key workaround applied at install time" -- neither
+                was true. The code has always emptied the file (not deleted
+                it, matching Rufus's own behaviour), and a registry-key step
+                WAS needed after all -- added to Install Windows.ps1 the same
+                day, once live testing showed appraiserres.dll alone no
+                longer satisfies Setup on Windows 11 builds 26000+. Wording
+                corrected throughout; no functional change in this file.
+
+                Previously Version 4: Show-ManualIsoInstructions no longer
+                trusts one Test-Path after the "Press Enter once it's there"
+                prompt and moves on -- confirmed for real, 2026-10-15:
+                pressing Enter before a manual copy of FULL Install.iso had
+                actually finished let the build carry on with a file still
+                open for writing, which then failed later trying to read it.
+                Now loops, checking the file isn't still locked by whatever's
+                copying it and is at least a plausible size for a genuine
+                Windows 11 ISO, re-prompting instead of accepting an
+                in-progress or truncated copy. Also: Get-OfficialWindows11IsoUrl
+                now resolves and downloads whatever Fido's own GitHub release
+                currently considers latest, right before using it, rather
+                than relying solely on the vendored Fido.ps1 copy --
+                confirmed for real, 2026-10-15: the vendored v1.70 copy only
+                listed up to Windows 11 25H2, even though 26H2 had already
+                shipped, purely because v1.70 predates Fido adding 26H2
+                support. Falls back to the vendored copy untouched if the
+                live fetch fails for any reason)
+         Dated: 17-Oct-26
+        Status: Confirmed end-to-end, 2026-10-17, on real non-compliant-
+                simulated hardware (Brians-Laptop, TPM/Secure Boot disabled
+                in BIOS): a BYPASS Install.iso built this way, combined with
+                the registry-key step in Install Windows.ps1, reached a fully
+                completed Windows 11 desktop with no hardware-block screen.
 #>
 
 # The community-standard way to copy an IMAPI2 result image to a .iso file --
@@ -532,10 +550,20 @@ function Write-AutoBuiltIsoDescriptions {
         @(
             "BYPASS Install.iso"
             "-------------------"
-            "The same official ISO, with one file removed: sources\appraiserres.dll -"
-            "the file Windows Setup calls to enforce its hardware eligibility checks."
-            "This is the same mechanism Rufus's own 'Extended Windows 11 Installation'"
-            "option uses, not a registry-key workaround applied at install time."
+            "The same official ISO, with sources\appraiserres.dll emptied (not removed -"
+            "Setup expects the file to still exist) - the file Windows Setup calls to"
+            "enforce its hardware eligibility checks."
+            ""
+            "That alone isn't enough by itself on current Windows 11 builds (26000+,"
+            "covering both 25H2 and 26H2) - Setup's check still runs and needs specific"
+            "registry values set first. WinFixIT's own installer (Install Windows.ps1)"
+            "sets those automatically, immediately before running Setup, whenever you"
+            "choose BYPASS Install - nothing extra for you to do."
+            ""
+            "Both techniques were traced from Rufus's own source code (GPL-3.0, same"
+            "licence as this repo) - the same official-servers mechanism, and the same"
+            "approach its own 'Extended Windows 11 Installation' option uses. Credit and"
+            "thanks to Pete Batard and the Rufus project (https://rufus.ie)."
             ""
             "Bypasses:"
             "  - TPM 2.0"

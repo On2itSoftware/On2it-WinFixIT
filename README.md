@@ -24,7 +24,7 @@ Connect with me on [LinkedIn](https://www.linkedin.com/in/BrianMcGuigan/) to see
 
 **Windows installation**:  You do not have to include a Windows Installer on your USB.  The Compatibility Checker, DeBloater, and Library all work just fine without it.  If you want your USB to be able to install Windows 11, a copy of the latest version will be downloaded straight from Microsoft's official servers.  (It uses [Fido](https://github.com/pbatard/Fido), the same official-download mechanism Rufus uses.)  So, WinFixIT's **FULL Install.iso** is the untouched Microsoft image.
 
-WinFixIT's **BYPASS Install.iso** is that same image with the one file Windows Setup uses to enforce its TPM 2.0/Secure Boot/supported-CPU checks removed.  (This is the same approach used by Rufus's "Extended Windows 11 Installation" option.)
+WinFixIT's **BYPASS Install.iso** is that same image with the one file Windows Setup uses to enforce its TPM 2.0/Secure Boot/supported-CPU checks emptied out (Setup expects the file to still exist, just unreadable) — plus a few registry values WinFixIT sets automatically right before Setup runs, since on Windows 11 builds 26000 and up (25H2 and later) the emptied file alone isn't enough by itself anymore.  Both techniques are traced from Rufus's own source code — the same approach used by its "Extended Windows 11 Installation" option.  Credit and thanks to Pete Batard and the [Rufus project](https://rufus.ie).
 
 RAM and storage aren't touched — Compatibility Checker already covers those, and there's no point bypassing a genuine hardware shortfall.  You'll still need your own valid Windows license/product key to install and activate either one.
 
