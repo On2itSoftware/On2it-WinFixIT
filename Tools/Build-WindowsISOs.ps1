@@ -53,7 +53,31 @@
    Designed by: Brian McGuigan
             of: On2it Software Ltd
        Code by: Claude
-       Version: 5 (Documentation accuracy fix, 2026-10-17: the header and
+       Version: 7 (Test-FullInstallIsoHash's mismatch message now says
+                outright "we can't confirm this download is genuine" and
+                walks the user through checking it themselves directly
+                against Microsoft's own published table -- Brian, 2026-10-17:
+                "If it fails for the user can we tell them it looks like the
+                Hash has changed, so we cannot verify that it's OK an tell
+                them how to check it for themselves?" No change to the
+                mailto: report path, still offered alongside this.)
+
+       Previously Version 6: New Test-FullInstallIsoHash function, 2026-10-17: verifies
+                a freshly-downloaded FULL Install.iso against Microsoft's own
+                published SHA256 (captured by hand from their "Verify your
+                download" table, not scraped live -- a live scrape was
+                considered but Fido itself doesn't capture a hash, and
+                Microsoft's download page structure is a separate, more
+                fragile thing to depend on than the download mechanism
+                itself). A mismatch WARNS and offers a pre-filled mailto:
+                report (nothing auto-sent, no embedded credentials) rather
+                than blocking the build -- Microsoft periodically refreshes
+                this same download with cumulative updates baked in, without
+                changing the page's version label, which would otherwise make
+                a hard-blocking hash check brick every genuine download the
+                next time that happens.
+
+                Previously Version 5: Documentation accuracy fix, 2026-10-17: the header and
                 ISO Descriptions.txt both used to say appraiserres.dll is
                 "deleted"/"removed" and that the bypass mechanism is "not a
                 registry-key workaround applied at install time" -- neither
@@ -81,7 +105,7 @@
                 listed up to Windows 11 25H2, even though 26H2 had already
                 shipped, purely because v1.70 predates Fido adding 26H2
                 support. Falls back to the vendored copy untouched if the
-                live fetch fails for any reason)
+                live fetch fails for any reason.
          Dated: 17-Oct-26
         Status: Confirmed end-to-end, 2026-10-17, on real non-compliant-
                 simulated hardware (Brians-Laptop, TPM/Secure Boot disabled
@@ -234,6 +258,110 @@ function Get-OfficialWindows11IsoUrl {
     Write-Host "  Got it: $isoFileName" -ForegroundColor Gray
     return $url
 }
+
+# =================================================================================
+# function Test-FullInstallIsoHash
+# =================================================================================
+#          Purpose: Verifies a freshly-downloaded FULL Install.iso against
+#                   Microsoft's own published SHA256, so "this is the genuine
+#                   Microsoft image" is provable, not just claimed.
+#
+#           Method: $KnownGoodSha256 was captured by hand from Microsoft's own
+#                   "Verify your download" table at
+#                   https://www.microsoft.com/en-us/software-download/windows11
+#                   -- confirmed 2026-10-17 directly against that page's raw
+#                   HTML (not an AI summary of it, to rule out a transcription
+#                   error in a value where being wrong matters), for the exact
+#                   row matching what Get-OfficialWindows11IsoUrl requests
+#                   (English International, x64).
+#
+#                   Microsoft periodically refreshes this same download with
+#                   newer cumulative updates baked in WITHOUT changing the
+#                   page's version label -- when that happens this constant
+#                   goes stale and every genuine download will show as a
+#                   "mismatch" below. That's expected, not an error condition,
+#                   so a mismatch WARNS and reports, it never blocks the build
+#                   -- a hard-blocking hardcoded hash would brick the public
+#                   build for everyone the next time Microsoft refreshes their
+#                   file, until someone manually updates this constant.
+#
+#                   On mismatch, opens the user's own email client (mailto:,
+#                   nothing sent automatically, no credentials embedded in
+#                   this public script) pre-filled with both hash values, so
+#                   WinFixIT's own record can be kept current from real
+#                   reports rather than needing watched proactively.
+#
+#       Written by: Brian McGuigan
+#               of: On2it Software Ltd
+#          Code by: Claude
+#          Version: 1
+#             Date: 17-Oct-2026
+function Test-FullInstallIsoHash {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$IsoPath
+    )
+
+    $knownGoodSha256 = '7E3F373BD3C2321B5D5125DFCF718DFBF1A0ABC50A267118669951890DF98A5D'  # English International 64-bit, captured 17-Oct-2026
+
+    Write-Host "  Verifying the download against Microsoft's published SHA256..." -ForegroundColor Cyan
+    $actualHash = (Get-FileHash -LiteralPath $IsoPath -Algorithm SHA256).Hash
+
+    if ($actualHash -eq $knownGoodSha256) {
+        Write-Host "  Verified -- matches Microsoft's published hash. Genuine, unmodified download." -ForegroundColor Green
+        Write-Host ""
+        return
+    }
+
+    Write-Host ""
+    Write-Host "  NOTE: This download's hash doesn't match the value WinFixIT has on file --" -ForegroundColor Yellow
+    Write-Host "  so WE CAN'T confirm this download is genuine and unmodified. Here's what" -ForegroundColor Yellow
+    Write-Host "  that does and doesn't mean, and how to check it yourself." -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "  This is NOT necessarily a problem. Microsoft periodically refreshes this" -ForegroundColor White
+    Write-Host "  same download with newer updates built in, without changing its version" -ForegroundColor White
+    Write-Host "  number -- which changes the hash. It can also mean the download was" -ForegroundColor White
+    Write-Host "  corrupted (try the build again) or, in rare cases, tampered with." -ForegroundColor White
+    Write-Host ""
+    Write-Host "  WinFixIT expected: $knownGoodSha256" -ForegroundColor Gray
+    Write-Host "  This download was: $actualHash" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  To check it yourself against Microsoft directly (recommended):" -ForegroundColor White
+    Write-Host "    1. Go to: https://www.microsoft.com/en-us/software-download/windows11" -ForegroundColor White
+    Write-Host "    2. Find the 'Verify your download' section and its SHA256 table." -ForegroundColor White
+    Write-Host "    3. Compare its 'English International 64-bit' value against the" -ForegroundColor White
+    Write-Host "       'This download was:' value shown above." -ForegroundColor White
+    Write-Host "    4. If THEY match each other, your download is genuine -- Microsoft has" -ForegroundColor White
+    Write-Host "       simply refreshed it since WinFixIT's record was last updated." -ForegroundColor White
+    Write-Host "       If they DON'T match, please don't use this ISO -- get it again, and" -ForegroundColor White
+    Write-Host "       if it still doesn't match, something is genuinely wrong." -ForegroundColor White
+    Write-Host ""
+    Write-Host "  Please also help keep WinFixIT's own record current by reporting this:" -ForegroundColor White
+
+    $subject = [uri]::EscapeDataString('WinFixIT: ISO hash mismatch')
+    $body = [uri]::EscapeDataString(
+        "WinFixIT's recorded SHA256 for the Windows 11 English International 64-bit ISO`r`n" +
+        "no longer matches what I just downloaded from Microsoft.`r`n`r`n" +
+        "WinFixIT expected: $knownGoodSha256`r`n" +
+        "This download was: $actualHash`r`n`r`n" +
+        "Date: $(Get-Date -Format 'dd-MMM-yyyy')"
+    )
+    $mailtoUri = "mailto:Brian@On2itSoftware.com?subject=$subject&body=$body"
+
+    try {
+        Start-Process $mailtoUri -ErrorAction Stop
+        Write-Host "  Your email program should have just opened with this pre-filled -- just hit Send." -ForegroundColor White
+    } catch {
+        Write-Host "  Couldn't open your email program automatically. Please email this yourself to:" -ForegroundColor White
+        Write-Host "    Brian@On2itSoftware.com" -ForegroundColor White
+        Write-Host "  or report it at:" -ForegroundColor White
+        Write-Host "    https://github.com/On2itSoftware/On2it-WinFixIT/issues" -ForegroundColor White
+    }
+    Write-Host ""
+    Write-Host "Press Enter to continue building your USB anyway..." -ForegroundColor Yellow -NoNewline
+    $null = Read-Host
+
+}  # END of - function Test-FullInstallIsoHash
 
 function New-BypassInstallIso {
     [CmdletBinding()]
@@ -442,6 +570,7 @@ function New-WindowsInstallIsos {
             Invoke-DownloadWithDots -Uri $sourceUrl -OutFile $fullIsoPath -ExpectedTotalMB 6810
             Write-Host "  Download complete." -ForegroundColor Gray
             Write-Host ""
+            Test-FullInstallIsoHash -IsoPath $fullIsoPath
         } else {
             Write-Host ""
             # Strip a leading "Error:"/"Error :" from Fido's own message before
